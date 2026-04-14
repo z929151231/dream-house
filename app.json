@@ -1,0 +1,10 @@
+{
+  "pages": [
+    "pages/game/main"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#667eea",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "梦想小屋"
+  }
+}
