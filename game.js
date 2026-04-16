@@ -558,39 +558,48 @@ function renderHouse(s, night, dusk) {
     const {x:cx, y:cy} = isoToScreen(HOUSE_COL+0.5, HOUSE_ROW+0.5);
     const bh = lvl.bodyH * s;
     
-    // 等距立方体：底面贴在地砖顶面上
-    // 地砖菱形顶点: 上(cx,cy-tile_hh) 左(cx-tile_hw,cy) 右(cx+tile_hw,cy) 下(cx,cy+tile_hh)
-    // 房子底面是内缩的小菱形
+    // 参考树的画法
     const tile_hw = TILE_W/2, tile_hh = TILE_H/2;
-    const hw = tile_hw * 0.5;  // 房子底面半宽
-    const hh = tile_hh * 0.5;  // 房子底面半高
+    const hw = tile_hw * 0.45;  // 房子宽度
+    const hh = tile_hh * 0.45;  // 房子深度
     
     // 3D 主体颜色
     const bodyColor = night?'#4a3a2a':(dusk?'#a07848':'#d4b87a');
     const bodyDark  = night?'#2a1a0a':(dusk?'#7a5830':'#b89860');
     const bodyTop   = night?'#5a4a3a':(dusk?'#b08850':'#e4c880');
+    const baseColor = night?'#3a2a1a':(dusk?'#7a5a3a':'#b89860');
 
-    // 左侧面：从底面左下边往上延伸
+    // 房子底座（和树冠底部一样，贴在格子上遮住缝隙）
+    ctx.fillStyle = baseColor;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - hh);         // 上顶点
+    ctx.lineTo(cx + hw, cy);         // 右顶点
+    ctx.lineTo(cx, cy + hh);         // 下顶点
+    ctx.lineTo(cx - hw, cy);         // 左顶点
+    ctx.closePath();
+    ctx.fill();
+
+    // 左侧面：从底座往上延伸
     ctx.fillStyle = bodyDark;
     ctx.beginPath();
-    ctx.moveTo(cx-hw, cy);           // 底面左顶点
-    ctx.lineTo(cx, cy+hh);           // 底面下顶点
+    ctx.moveTo(cx-hw, cy);           // 底座左顶点
+    ctx.lineTo(cx, cy+hh);           // 底座下顶点
     ctx.lineTo(cx, cy+hh-bh);        // 上顶点往上
     ctx.lineTo(cx-hw, cy-bh);        // 左顶点往上
     ctx.closePath();
     ctx.fill();
 
-    // 右侧面：从底面右下边往上延伸
+    // 右侧面：从底座往上延伸
     ctx.fillStyle = bodyColor;
     ctx.beginPath();
-    ctx.moveTo(cx+hw, cy);           // 底面右顶点
-    ctx.lineTo(cx, cy+hh);           // 底面下顶点
+    ctx.moveTo(cx+hw, cy);           // 底座右顶点
+    ctx.lineTo(cx, cy+hh);           // 底座下顶点
     ctx.lineTo(cx, cy+hh-bh);        // 上顶点往上
     ctx.lineTo(cx+hw, cy-bh);        // 右顶点往上
     ctx.closePath();
     ctx.fill();
 
-    // 顶面：往上平移 bh 后的菱形
+    // 顶面
     ctx.fillStyle = bodyTop;
     ctx.beginPath();
     ctx.moveTo(cx, cy-bh-hh);        // 顶面上顶点
@@ -600,7 +609,7 @@ function renderHouse(s, night, dusk) {
     ctx.closePath();
     ctx.fill();
 
-    // 屋顶（三角形，从顶面往上）
+    // 屋顶
     const roofH = bh * 0.55;
     ctx.fillStyle = night?'#3a2010':(dusk?'#704020':'#a05830');
     ctx.beginPath();
@@ -618,14 +627,13 @@ function renderHouse(s, night, dusk) {
     ctx.closePath();
     ctx.fill();
 
-    // 门窗（在右侧面）
-    const bodyBase = cy; // 主体底边在 cy
+    // 门窗
     if (!night) {
-        ctx.fillStyle='#6a9fd4'; ctx.fillRect(cx-5*s,bodyBase-bh*0.2,6*s,bh*0.35);
-        ctx.fillStyle='#f0d080'; ctx.fillRect(cx+3*s,bodyBase-bh*0.45,5*s,5*s);
+        ctx.fillStyle='#6a9fd4'; ctx.fillRect(cx-5*s,cy-bh*0.2,6*s,bh*0.35);
+        ctx.fillStyle='#f0d080'; ctx.fillRect(cx+3*s,cy-bh*0.45,5*s,5*s);
     } else {
-        ctx.fillStyle='#f8d060'; ctx.fillRect(cx-5*s,bodyBase-bh*0.2,6*s,bh*0.35);
-        ctx.fillStyle='#f8d060'; ctx.fillRect(cx+3*s,bodyBase-bh*0.45,5*s,5*s);
+        ctx.fillStyle='#f8d060'; ctx.fillRect(cx-5*s,cy-bh*0.2,6*s,bh*0.35);
+        ctx.fillStyle='#f8d060'; ctx.fillRect(cx+3*s,cy-bh*0.45,5*s,5*s);
     }
 
     // emoji
