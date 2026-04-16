@@ -555,26 +555,22 @@ function renderHouse(s, night, dusk) {
     const h = gameState.house;
     const lvl = HOUSE_LEVELS[h.level-1];
     const emoji = h.style ? h.style.emoji : lvl.emoji;
+    // 用 +0.5 与 renderTile 一致，取格子菱形的几何中心
+    const {x:cx, y:cy} = isoToScreen(HOUSE_COL+0.5, HOUSE_ROW+0.5);
     const bh = lvl.bodyH * s;
-    // 格子中心 = isoToScreen(col,row) + 半格偏移
-    const {x:baseX, y:baseY} = isoToScreen(HOUSE_COL, HOUSE_ROW);
-    const cx = baseX + TILE_W/2;
-    const cy = baseY + TILE_H/2;
     const hw=TILE_W*0.45, hh=TILE_H*0.45;
 
-    // 底座（贴在格子顶面上）
-    const baseColor = night?'#3a2a1a':(dusk?'#8a6a3a':'#c9a96e');
-    ctx.fillStyle = baseColor;
-    ctx.beginPath(); ctx.moveTo(cx,cy-hh); ctx.lineTo(cx+hw,cy); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx-hw,cy); ctx.closePath(); ctx.fill();
-
-    // 3D 主体（左右侧面 + 顶面）
+    // 3D 主体（直接坐在菱形顶面上，左右底边与菱形顶边对齐）
     const bodyColor = night?'#4a3a2a':(dusk?'#a07848':'#d4b87a');
     const bodyDark  = night?'#2a1a0a':(dusk?'#7a5830':'#b89860');
     const bodyTop   = night?'#5a4a3a':(dusk?'#b08850':'#e4c880');
+    // 左侧面
     ctx.fillStyle = bodyDark;
     ctx.beginPath(); ctx.moveTo(cx-hw,cy); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx-hw,cy-bh); ctx.closePath(); ctx.fill();
+    // 右侧面
     ctx.fillStyle = bodyColor;
     ctx.beginPath(); ctx.moveTo(cx+hw,cy); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx+hw,cy-bh); ctx.closePath(); ctx.fill();
+    // 顶面
     ctx.fillStyle = bodyTop;
     ctx.beginPath(); ctx.moveTo(cx,cy-bh-hh); ctx.lineTo(cx+hw,cy-bh); ctx.lineTo(cx,cy-bh+hh); ctx.lineTo(cx-hw,cy-bh); ctx.closePath(); ctx.fill();
 
