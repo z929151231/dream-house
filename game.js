@@ -653,9 +653,6 @@ function renderHouse(s, night, dusk) {
     ctx.fillText(emoji,cx,cy-bh+emojiSize*0.1);
 }
 
-    ctx.fillStyle=night?'#ffe080':'#ffffff';
-    ctx.fillText(emoji,cx,bodyBase-bh+emojiSize*0.1);
-}
 
 // ============================================================
 // 风格选择模态框
