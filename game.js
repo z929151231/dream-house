@@ -565,41 +565,85 @@ function renderHills(s,w,h,night) {
 function renderZone(s,w,h,night,dusk) {
     const zone = gameState.zones[gameState.selectedZone];
 
-    // 区域地面背景
+    // 区域地面背景 - 3D立体底座
     const tlInfo = zoneGridToScreen(0,0,zone);
     const brInfo = zoneGridToScreen(2,2,zone);
     const groundW = brInfo.x - tlInfo.x + maxTileW + 10*s;
     const groundH = brInfo.y - tlInfo.y + maxTileW*0.65 + 10*s;
     const gx = w/2 - groundW/2;
+    const gy = gridTop - 5*s;
 
-    // 区域地面渐变
-    const groundGrd = ctx.createLinearGradient(gx,gridTop-5*s,gx,gridTop-5*s+groundH);
-    if (night) { groundGrd.addColorStop(0,'#1a3a1a'); groundGrd.addColorStop(1,'#0f2515'); }
-    else if (dusk) { groundGrd.addColorStop(0,'#2a5a2a'); groundGrd.addColorStop(1,'#1a4020'); }
-    else { groundGrd.addColorStop(0,'#2a7a30'); groundGrd.addColorStop(1,'#1a5a20'); }
-    ctx.fillStyle=groundGrd;
+    // 3D底座阴影
+    ctx.fillStyle='rgba(0,0,0,0.3)';
     ctx.beginPath();
-    ctx.roundRect(gx, gridTop-5*s, groundW, groundH, 12*s);
+    ctx.roundRect(gx+8*s, gy+8*s, groundW, groundH, 12*s);
     ctx.fill();
 
-    // 区域名称标签
-    const labelY = gridTop - 18*s;
-    ctx.fillStyle='rgba(20,40,30,0.8)';
-    ctx.beginPath(); ctx.roundRect(w/2-65*s, labelY-2*s, 130*s, 24*s, 12*s); ctx.fill();
-    ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(w/2-65*s, labelY-2*s, 130*s, 24*s, 12*s); ctx.stroke();
-    ctx.fillStyle='#ffd700'; ctx.font='bold '+(12*s)+'px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(zone.emoji+' '+zone.name, w/2, labelY+14*s);
+    // 底座侧面（厚度）
+    const thickness = 12*s;
+    ctx.fillStyle = night ? '#1a2a1a' : (dusk ? '#2a4a2a' : '#3a6a3a');
+    ctx.beginPath();
+    ctx.moveTo(gx, gy+groundH);
+    ctx.lineTo(gx+thickness, gy+groundH+thickness);
+    ctx.lineTo(gx+groundW+thickness, gy+groundH+thickness);
+    ctx.lineTo(gx+groundW, gy+groundH);
+    ctx.closePath();
+    ctx.fill();
+
+    // 底座右侧面
+    ctx.fillStyle = night ? '#152515' : (dusk ? '#254525' : '#305a30');
+    ctx.beginPath();
+    ctx.moveTo(gx+groundW, gy);
+    ctx.lineTo(gx+groundW+thickness, gy+thickness);
+    ctx.lineTo(gx+groundW+thickness, gy+groundH+thickness);
+    ctx.lineTo(gx+groundW, gy+groundH);
+    ctx.closePath();
+    ctx.fill();
+
+    // 主地面 - 渐变
+    const groundGrd = ctx.createLinearGradient(gx, gy, gx, gy+groundH);
+    if (night) { groundGrd.addColorStop(0,'#2a4a2a'); groundGrd.addColorStop(1,'#1a2a1a'); }
+    else if (dusk) { groundGrd.addColorStop(0,'#3a6a3a'); groundGrd.addColorStop(1,'#2a4a2a'); }
+    else { groundGrd.addColorStop(0,'#4a8a4a'); groundGrd.addColorStop(1,'#3a6a3a'); }
+    ctx.fillStyle=groundGrd;
+    ctx.beginPath();
+    ctx.roundRect(gx, gy, groundW, groundH, 12*s);
+    ctx.fill();
+
+    // 地面内边框（精致感）
+    ctx.strokeStyle='rgba(255,255,255,0.15)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.roundRect(gx+4*s, gy+4*s, groundW-8*s, groundH-8*s, 8*s);
+    ctx.stroke();
+
+    // 区域名称标签 - 3D卡片效果
+    const labelY = gridTop - 22*s;
+    // 标签阴影
+    ctx.fillStyle='rgba(0,0,0,0.25)';
+    ctx.beginPath(); ctx.roundRect(w/2-62*s, labelY+2*s, 124*s, 26*s, 14*s); ctx.fill();
+    // 标签主体
+    const labelGrd = ctx.createLinearGradient(0,labelY,0,labelY+24*s);
+    labelGrd.addColorStop(0,'rgba(40,60,50,0.95)');
+    labelGrd.addColorStop(1,'rgba(25,40,30,0.95)');
+    ctx.fillStyle=labelGrd;
+    ctx.beginPath(); ctx.roundRect(w/2-60*s, labelY, 120*s, 24*s, 12*s); ctx.fill();
+    ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.roundRect(w/2-60*s, labelY, 120*s, 24*s, 12*s); ctx.stroke();
+    ctx.fillStyle='#ffd700'; ctx.font='bold '+(13*s)+'px sans-serif'; ctx.textAlign='center';
+    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=3;
+    ctx.fillText(zone.emoji+' '+zone.name, w/2, labelY+16*s);
+    ctx.shadowBlur=0;
 
     if (!zone.unlocked) {
-        // 锁定状态
         renderLockedZone(s,w,h,zone,night);
         return;
     }
 
-    // 地面格子
+    // 3D立体格子
     for (let row=0; row<3; row++) {
         for (let col=0; col<3; col++) {
-            renderZoneTile(col,row,s,zone,night,dusk);
+            render3DTile(col,row,s,zone,night,dusk);
         }
     }
 
@@ -610,11 +654,9 @@ function renderZone(s,w,h,night,dusk) {
         ctx.beginPath(); ctx.ellipse(rip.x,rip.y,rip.r,rip.r*0.4,0,0,Math.PI*2); ctx.stroke();
     });
 
-    // 物体（按深度排序）
+    // 物体（按深度排序，后排先画）
     const drawables = [];
-    // 基地有房子
     if (zone.isBase) drawables.push({kind:'house', lCol:1, lRow:1});
-
     zone.garden.forEach(cell => {
         const lCol = cell.col - zone.col0;
         const lRow = cell.row - zone.row0;
@@ -622,18 +664,15 @@ function renderZone(s,w,h,night,dusk) {
             drawables.push({kind:'plant', lCol, lRow, cell});
         }
     });
-
     drawables.sort((a,b)=>{
         if (a.lRow!==b.lRow) return a.lRow-b.lRow;
         return a.lCol-b.lCol;
     });
-
     drawables.forEach(d=>{
-        if (d.kind==='house') renderZoneHouse(s,zone,night,dusk);
-        else renderZonePlant(d.cell,s,zone,night,dusk);
+        if (d.kind==='house') render3DHouse(s,zone,night,dusk);
+        else render3DPlant(d.cell,s,zone,night,dusk);
     });
 
-    // 基地专属：赚金币按钮
     if (zone.isBase) renderEarnButton(s,w,h,night);
 }
 
@@ -1035,3 +1074,162 @@ function renderParticles(s,night) {
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
 
 init();
+
+// ============================================================
+// 3D立体格子渲染
+// ============================================================
+function render3DTile(col,row,s,zone,night,dusk) {
+    const {x,y,tileW,tileH} = zoneGridToScreen(col,row,zone);
+    const tileSize = tileW * 0.85;
+    const tx = x - tileSize/2;
+    const ty = y - tileH*0.3;
+    const thickness = 6*s;
+
+    // 格子阴影
+    ctx.fillStyle='rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(x+3*s, y+3*s, tileSize*0.45, tileSize*0.25, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // 格子厚度（侧面）
+    ctx.fillStyle = night ? '#1a3a2a' : (dusk ? '#2a5a3a' : '#3a7a4a');
+    ctx.beginPath();
+    ctx.moveTo(tx, ty+tileSize*0.5);
+    ctx.lineTo(tx+thickness, ty+tileSize*0.5+thickness);
+    ctx.lineTo(tx+tileSize+thickness, ty+tileSize*0.5+thickness);
+    ctx.lineTo(tx+tileSize, ty+tileSize*0.5);
+    ctx.closePath();
+    ctx.fill();
+
+    // 格子顶面
+    const tileGrd = ctx.createLinearGradient(tx, ty, tx, ty+tileSize*0.5);
+    if (night) {
+        tileGrd.addColorStop(0,'#2a5a3a'); tileGrd.addColorStop(1,'#1a3a2a');
+    } else if (dusk) {
+        tileGrd.addColorStop(0,'#3a7a4a'); tileGrd.addColorStop(1,'#2a5a3a');
+    } else {
+        tileGrd.addColorStop(0,'#5aaa6a'); tileGrd.addColorStop(1,'#3a8a4a');
+    }
+    ctx.fillStyle=tileGrd;
+    ctx.beginPath();
+    ctx.roundRect(tx, ty, tileSize, tileSize*0.5, 6*s);
+    ctx.fill();
+
+    // 格子高光边框
+    ctx.strokeStyle='rgba(255,255,255,0.2)';
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.roundRect(tx, ty, tileSize, tileSize*0.5, 6*s);
+    ctx.stroke();
+}
+
+// ============================================================
+// 3D立体植物渲染
+// ============================================================
+function render3DPlant(cell,s,zone,night,dusk) {
+    const {x,y,tileW,tileH} = zoneGridToScreen(cell.col-zone.col0, cell.row-zone.row0, zone);
+    const item = SHOP_ITEMS.find(i=>i.id===cell.itemId);
+    if (!item) return;
+
+    const stage = cell.stage || 0;
+    const emoji = stage===0 ? item.emoji0 : (stage===1 ? item.emoji1 : item.emoji2);
+    const growth = Math.min(1, (cell.growth||0) / item.growth);
+
+    // 植物大小随生长变化
+    const baseSize = tileW * (0.7 + growth*0.4);
+    const plantSize = baseSize * (item.type==='tree'?1.3:1);
+    const plantY = y - tileH*0.4 - plantSize*0.3;
+
+    // 植物阴影（椭圆形，有立体感）
+    ctx.fillStyle='rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(x+2*s, y+2*s, plantSize*0.35, plantSize*0.15, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // 植物底座（花盆/土壤）
+    if (item.type!=='ground' && item.type!=='water') {
+        const potSize = plantSize * 0.5;
+        ctx.fillStyle = night ? '#3a3020' : (dusk ? '#4a4030' : '#5a5040');
+        ctx.beginPath();
+        ctx.ellipse(x, y, potSize*0.4, potSize*0.15, 0, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    // 植物主体（带发光效果）
+    ctx.font=plantSize+'px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+
+    // 夜晚发光效果
+    if (night && (item.type==='flower' || item.type==='tree')) {
+        const glowSize = plantSize * 0.8;
+        const glowGrd = ctx.createRadialGradient(x, plantY, 0, x, plantY, glowSize);
+        glowGrd.addColorStop(0,'rgba(100,255,100,0.3)');
+        glowGrd.addColorStop(0.5,'rgba(50,200,50,0.1)');
+        glowGrd.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=glowGrd;
+        ctx.beginPath(); ctx.arc(x, plantY, glowSize, 0, Math.PI*2); ctx.fill();
+    }
+
+    // 植物阴影层
+    ctx.fillStyle='rgba(0,0,0,0.2)';
+    ctx.fillText(emoji, x+2*s, plantY+2*s);
+
+    // 植物本体
+    ctx.fillStyle='#ffffff';
+    ctx.fillText(emoji, x, plantY);
+
+    // 成熟光点效果
+    if (stage===2 && !night) {
+        const sparkle=Math.sin(Date.now()*0.004+cell.col*3+cell.row*2)*0.5+0.5;
+        ctx.fillStyle='rgba(255,255,200,'+(sparkle*0.6)+')';
+        ctx.beginPath();
+        ctx.arc(x+plantSize*0.2, plantY-plantSize*0.25, 3*s*sparkle, 0, Math.PI*2);
+        ctx.fill();
+    }
+}
+
+// ============================================================
+// 3D立体房子渲染
+// ============================================================
+function render3DHouse(s,zone,night,dusk) {
+    const {x,y,tileW,tileH} = zoneGridToScreen(1,1,zone);
+    const h2 = gameState.house;
+    const lvl = HOUSE_LEVELS[h2.level-1];
+    const emoji = h2.style ? h2.style.emoji : lvl.emoji;
+
+    // 房子大小随等级增长
+    const houseSize = tileW * (1.4 + h2.level*0.15);
+    const houseY = y - tileH*0.5 - houseSize*0.2;
+
+    // 房子大阴影（立体感）
+    ctx.fillStyle='rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(x+4*s, y+4*s, houseSize*0.45, houseSize*0.2, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // 房子底座（石台）
+    ctx.fillStyle = night ? '#3a3a4a' : (dusk ? '#4a4a5a' : '#5a5a6a');
+    ctx.beginPath();
+    ctx.ellipse(x, y+5*s, houseSize*0.5, houseSize*0.2, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // 夜晚窗户灯光
+    if (night) {
+        const winGrd = ctx.createRadialGradient(x, houseY, 0, x, houseY, houseSize*1.2);
+        winGrd.addColorStop(0,'rgba(255,220,100,0.4)');
+        winGrd.addColorStop(0.5,'rgba(255,180,50,0.15)');
+        winGrd.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=winGrd;
+        ctx.fillRect(x-houseSize, houseY-houseSize, houseSize*2, houseSize*2);
+    }
+
+    // 房子阴影层
+    ctx.font=houseSize+'px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(0,0,0,0.25)';
+    ctx.fillText(emoji, x+3*s, houseY+3*s);
+
+    // 房子本体
+    ctx.fillStyle='#ffffff';
+    ctx.fillText(emoji, x, houseY);
+}
