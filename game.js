@@ -509,9 +509,6 @@ function render() {
     // 远景山丘（背景）
     renderHills(s, w, h, sky, night);
 
-    // ---- 房屋（在地面之后、花园之前）----
-    renderHouse(s, night, dusk);
-
     // ---- 等距地面网格 ----
     // 按深度排序：col+row 小的先画（后面），大的后画（前面）
     for (let sum = 0; sum < GRID_COLS + GRID_ROWS - 1; sum++) {
@@ -521,6 +518,9 @@ function render() {
             renderTile(col, row, s, night, dusk, sky);
         }
     }
+
+    // ---- 房屋（地面之后、花园物体之前）----
+    renderHouse(s, night, dusk);
 
     // ---- 格子内物体（同样按深度排序） ----
     // 先画矮的（花、草），再画高的（树、水）
