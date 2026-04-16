@@ -556,31 +556,34 @@ function renderHouse(s, night, dusk) {
     const lvl = HOUSE_LEVELS[h.level-1];
     const emoji = h.style ? h.style.emoji : lvl.emoji;
     const bh = lvl.bodyH * s;
-    const {x:cx, y:cy} = isoToScreen(HOUSE_COL+0.5, HOUSE_ROW+0.5);
-    const hw=TILE_W/2, hh=TILE_H/2;
+    // 格子中心 = isoToScreen(col,row) + 半格偏移
+    const {x:baseX, y:baseY} = isoToScreen(HOUSE_COL, HOUSE_ROW);
+    const cx = baseX + TILE_W/2;
+    const cy = baseY + TILE_H/2;
+    const hw=TILE_W*0.45, hh=TILE_H*0.45;
 
-    // 底座
+    // 底座（贴在格子顶面上）
     const baseColor = night?'#3a2a1a':(dusk?'#8a6a3a':'#c9a96e');
     ctx.fillStyle = baseColor;
-    ctx.beginPath(); ctx.moveTo(cx,cy-hh+2); ctx.lineTo(cx+hw-2,cy); ctx.lineTo(cx,cy+hh-2); ctx.lineTo(cx-hw+2,cy); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,cy-hh); ctx.lineTo(cx+hw,cy); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx-hw,cy); ctx.closePath(); ctx.fill();
 
     // 3D 主体（左右侧面 + 顶面）
     const bodyColor = night?'#4a3a2a':(dusk?'#a07848':'#d4b87a');
     const bodyDark  = night?'#2a1a0a':(dusk?'#7a5830':'#b89860');
     const bodyTop   = night?'#5a4a3a':(dusk?'#b08850':'#e4c880');
     ctx.fillStyle = bodyDark;
-    ctx.beginPath(); ctx.moveTo(cx-hw*0.7,cy); ctx.lineTo(cx,cy+hh*0.7); ctx.lineTo(cx,cy+hh*0.7-bh); ctx.lineTo(cx-hw*0.7,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx-hw,cy); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx-hw,cy-bh); ctx.closePath(); ctx.fill();
     ctx.fillStyle = bodyColor;
-    ctx.beginPath(); ctx.moveTo(cx+hw*0.7,cy); ctx.lineTo(cx,cy+hh*0.7); ctx.lineTo(cx,cy+hh*0.7-bh); ctx.lineTo(cx+hw*0.7,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx+hw,cy); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx+hw,cy-bh); ctx.closePath(); ctx.fill();
     ctx.fillStyle = bodyTop;
-    ctx.beginPath(); ctx.moveTo(cx,cy-bh-hh*0.7); ctx.lineTo(cx+hw*0.7,cy-bh); ctx.lineTo(cx,cy-bh+hh*0.7); ctx.lineTo(cx-hw*0.7,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,cy-bh-hh); ctx.lineTo(cx+hw,cy-bh); ctx.lineTo(cx,cy-bh+hh); ctx.lineTo(cx-hw,cy-bh); ctx.closePath(); ctx.fill();
 
     // 屋顶
     const roofH = bh * 0.55;
     ctx.fillStyle = night?'#3a2010':(dusk?'#704020':'#a05830');
-    ctx.beginPath(); ctx.moveTo(cx-hw*0.75,cy-bh); ctx.lineTo(cx,cy-bh-roofH); ctx.lineTo(cx,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx-hw*1.1,cy-bh); ctx.lineTo(cx,cy-bh-roofH); ctx.lineTo(cx,cy-bh); ctx.closePath(); ctx.fill();
     ctx.fillStyle = night?'#5a3a2a':(dusk?'#a06030':'#c07840');
-    ctx.beginPath(); ctx.moveTo(cx+hw*0.75,cy-bh); ctx.lineTo(cx,cy-bh-roofH); ctx.lineTo(cx,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx+hw*1.1,cy-bh); ctx.lineTo(cx,cy-bh-roofH); ctx.lineTo(cx,cy-bh); ctx.closePath(); ctx.fill();
 
     // 门窗
     if (!night) {
