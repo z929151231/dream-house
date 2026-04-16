@@ -773,12 +773,12 @@ function renderParticles(s, night) {
         if (p.type === 'butterfly') {
             const wx = Math.abs(Math.sin(p.wing)) * 0.35;
             ctx.globalAlpha = 0.9;
-            ctx.font = tileW * 0.25 + 'px sans-serif';
+            ctx.font = maxTileW * 0.28 + 'px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = night ? '#aaffaa' : '#fff';
-            ctx.fillText(p.emoji, x - tileW * 0.1, p.y);
-            ctx.fillText(p.emoji, x + tileW * 0.1, p.y);
+            ctx.fillText(p.emoji, p.x - maxTileW * 0.08, p.y);
+            ctx.fillText(p.emoji, p.x + maxTileW * 0.08, p.y);
             ctx.globalAlpha = 1;
         } else if (p.type === 'firefly') {
             const glow = Math.sin(p.life * 0.06 + p.phase) * 0.5 + 0.5;
@@ -794,7 +794,7 @@ function renderParticles(s, night) {
             ctx.save();
             ctx.translate(p.x, p.y);
             ctx.rotate(p.rot);
-            ctx.font = tileW * 0.22 + 'px sans-serif';
+            ctx.font = maxTileW * 0.22 + 'px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.globalAlpha = Math.min(1, (p.maxLife - p.life) / 40);
