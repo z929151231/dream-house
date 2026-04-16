@@ -23,13 +23,13 @@
 <canvas id="gameCanvas"></canvas>
 <script>
 // 微信小游戏 API 适配层（浏览器 → wx shim）
-const canvas = document.getElementById('gameCanvas');
-const ctx2d = canvas.getContext('2d');
+const el = document.getElementById('gameCanvas');
+const ctx2d = el.getContext('2d');
 
 // 模拟 wx 对象
 const wx = {
     createCanvas() {
-        return canvas;
+        return el;
     },
     getSystemInfoSync() {
         return {
@@ -39,47 +39,40 @@ const wx = {
         };
     },
     onTouchStart(callback) {
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            callback(e);
-        });
-        canvas.addEventListener('mousedown', (e) => {
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); callback(e); });
+        el.addEventListener('mousedown', (e) => {
             callback({ touches: [{ clientX: e.clientX, clientY: e.clientY }] });
         });
     },
     onTouchMove(callback) {
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            callback(e);
-        });
-        canvas.addEventListener('mousemove', (e) => {
-            if (e.buttons) {
-                callback({ touches: [{ clientX: e.clientX, clientY: e.clientY }] });
-            }
+        el.addEventListener('touchmove', (e) => { e.preventDefault(); callback(e); });
+        el.addEventListener('mousemove', (e) => {
+            if (e.buttons) callback({ touches: [{ clientX: e.clientX, clientY: e.clientY }] });
         });
     },
     onTouchEnd(callback) {
-        canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            callback(e);
-        });
-        canvas.addEventListener('mouseup', (e) => {
-            callback(e);
-        });
+        el.addEventListener('touchend', (e) => { e.preventDefault(); callback(e); });
+        el.addEventListener('mouseup', () => callback());
     }
 };
 
 // 适配 Canvas 尺寸（高分屏）
-function resizeCanvas() {
+(function initCanvas() {
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
+    el.width = window.innerWidth * dpr;
+    el.height = window.innerHeight * dpr;
+    el.style.width = window.innerWidth + 'px';
+    el.style.height = window.innerHeight + 'px';
     ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+})();
+window.addEventListener('resize', () => {
+    const dpr = window.devicePixelRatio || 1;
+    el.width = window.innerWidth * dpr;
+    el.height = window.innerHeight * dpr;
+    el.style.width = window.innerWidth + 'px';
+    el.style.height = window.innerHeight + 'px';
+    ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+});
 </script>
 <script src="game.js"></script>
 </body>
