@@ -569,16 +569,6 @@ function renderHouse(s, night, dusk) {
     const bodyTop   = night?'#5a4a3a':(dusk?'#b08850':'#e4c880');
     const baseColor = night?'#3a2a1a':(dusk?'#7a5a3a':'#b89860');
 
-    // 房子底座（和树冠底部一样，贴在格子上遮住缝隙）
-    ctx.fillStyle = baseColor;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - hh);         // 上顶点
-    ctx.lineTo(cx + hw, cy);         // 右顶点
-    ctx.lineTo(cx, cy + hh);         // 下顶点
-    ctx.lineTo(cx - hw, cy);         // 左顶点
-    ctx.closePath();
-    ctx.fill();
-
     // 左侧面：从底座往上延伸
     ctx.fillStyle = bodyDark;
     ctx.beginPath();
@@ -886,16 +876,7 @@ function renderCellItem(cell, s, night, dusk) {
             ctx.closePath();
             ctx.fill();
 
-            // 树冠底部（落在格子上）
-            ctx.fillStyle = night ? '#1a3a1a' : '#2a6a28';
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - hh);
-            ctx.lineTo(cx + hw - 2, cy);
-            ctx.lineTo(cx, cy + hh - 2);
-            ctx.lineTo(cx - hw + 2, cy);
-            ctx.closePath();
-            ctx.fill();
-
+        
             // 树冠本体（比格子大，有3D厚度感）
             const canopyTop = cy - bh;
             const canopyW = TILE_W * 0.7;
@@ -918,27 +899,25 @@ function renderCellItem(cell, s, night, dusk) {
             ctx.fillStyle = night ? '#1a3a1a' : '#3a8a38';
             ctx.fillRect(cx - 2 * s, cy - bh * 0.5, 4 * s, bh * 0.5);
 
-            // 花朵底座（贴在格子上，遮住缝隙）
-            ctx.fillStyle = night ? '#2a4a2a' : '#3a7a3a';
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - hh);
-            ctx.lineTo(cx + hw - 2, cy);
-            ctx.lineTo(cx, cy + hh - 2);
-            ctx.lineTo(cx - hw + 2, cy);
-            ctx.closePath();
-            ctx.fill();
-
+        
         } else if (cell.plant.type === 'deco') {
-            // 装饰物底部
-            ctx.fillStyle = night ? '#2a3a2a' : '#4a6a3a';
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - hh);
-            ctx.lineTo(cx + hw - 2, cy);
-            ctx.lineTo(cx, cy + hh - 2);
-            ctx.lineTo(cx - hw + 2, cy);
-            ctx.closePath();
-            ctx.fill();
-        }
+                }
+    }
+
+
+    // === 统一底座（最后画=盖在上层=落地感）===
+    if (bh > 0) {
+        const baseColor = night ? '#2a3a2a' : '#4a6a3a';
+        const baseHW = hw - 1;
+        const baseHH = hh - 1;
+        ctx.fillStyle = baseColor;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - baseHH);
+        ctx.lineTo(cx + baseHW, cy);
+        ctx.lineTo(cx, cy + baseHH);
+        ctx.lineTo(cx - baseHW, cy);
+        ctx.closePath();
+        ctx.fill();
     }
 
     // === emoji 图标 ===
