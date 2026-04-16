@@ -45,8 +45,8 @@ const HOUSE_LEVELS = [
 ];
 
 // ---- 游戏状态 ----
-const GRID_COLS = 10;
-const GRID_ROWS = 10;
+const GRID_COLS = 9;
+const GRID_ROWS = 9;
 const HOUSE_COL = 4;
 const HOUSE_ROW = 4;
 const gameState = {
