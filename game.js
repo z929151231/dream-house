@@ -557,51 +557,93 @@ function renderHouse(s, night, dusk) {
     const emoji = h.style ? h.style.emoji : lvl.emoji;
     const {x:cx, y:cy} = isoToScreen(HOUSE_COL+0.5, HOUSE_ROW+0.5);
     const bh = lvl.bodyH * s;
-    const hw=TILE_W*0.46, hh=TILE_H*0.46;
-
-    // 3D 主体：从菱形顶面 cy-hh 往上长（不再有底部露出）
+    
+    // 等距立方体：底面贴在地砖顶面上
+    // 地砖菱形顶点: 上(cx,cy-tile_hh) 左(cx-tile_hw,cy) 右(cx+tile_hw,cy) 下(cx,cy+tile_hh)
+    // 房子底面是内缩的小菱形
+    const tile_hw = TILE_W/2, tile_hh = TILE_H/2;
+    const hw = tile_hw * 0.5;  // 房子底面半宽
+    const hh = tile_hh * 0.5;  // 房子底面半高
+    
+    // 3D 主体颜色
     const bodyColor = night?'#4a3a2a':(dusk?'#a07848':'#d4b87a');
     const bodyDark  = night?'#2a1a0a':(dusk?'#7a5830':'#b89860');
     const bodyTop   = night?'#5a4a3a':(dusk?'#b08850':'#e4c880');
-    // 左侧面（底部对齐菱形顶面）
-    ctx.fillStyle = bodyDark;
-    ctx.beginPath(); ctx.moveTo(cx-hw,cy-hh); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx-hw,cy-hh-bh); ctx.closePath(); ctx.fill();
-    // 右侧面
-    ctx.fillStyle = bodyColor;
-    ctx.beginPath(); ctx.moveTo(cx+hw,cy-hh); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx+hw,cy-hh-bh); ctx.closePath(); ctx.fill();
-    // 顶面
-    ctx.fillStyle = bodyTop;
-    ctx.beginPath(); ctx.moveTo(cx,cy-hh-bh-hh); ctx.lineTo(cx+hw,cy-hh-bh); ctx.lineTo(cx,cy-hh-bh+hh); ctx.lineTo(cx-hw,cy-hh-bh); ctx.closePath(); ctx.fill();
 
-    // 屋顶（从顶面边缘升起）
+    // 左侧面：从底面左下边往上延伸
+    ctx.fillStyle = bodyDark;
+    ctx.beginPath();
+    ctx.moveTo(cx-hw, cy);           // 底面左顶点
+    ctx.lineTo(cx, cy+hh);           // 底面下顶点
+    ctx.lineTo(cx, cy+hh-bh);        // 上顶点往上
+    ctx.lineTo(cx-hw, cy-bh);        // 左顶点往上
+    ctx.closePath();
+    ctx.fill();
+
+    // 右侧面：从底面右下边往上延伸
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.moveTo(cx+hw, cy);           // 底面右顶点
+    ctx.lineTo(cx, cy+hh);           // 底面下顶点
+    ctx.lineTo(cx, cy+hh-bh);        // 上顶点往上
+    ctx.lineTo(cx+hw, cy-bh);        // 右顶点往上
+    ctx.closePath();
+    ctx.fill();
+
+    // 顶面：往上平移 bh 后的菱形
+    ctx.fillStyle = bodyTop;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy-bh-hh);        // 顶面上顶点
+    ctx.lineTo(cx+hw, cy-bh);        // 顶面右顶点
+    ctx.lineTo(cx, cy-bh+hh);        // 顶面下顶点
+    ctx.lineTo(cx-hw, cy-bh);        // 顶面左顶点
+    ctx.closePath();
+    ctx.fill();
+
+    // 屋顶（三角形，从顶面往上）
     const roofH = bh * 0.55;
     ctx.fillStyle = night?'#3a2010':(dusk?'#704020':'#a05830');
-    ctx.beginPath(); ctx.moveTo(cx-hw*1.05,cy-hh-bh); ctx.lineTo(cx,cy-hh-bh-roofH); ctx.lineTo(cx,cy-hh-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx-hw*1.05, cy-bh);
+    ctx.lineTo(cx, cy-bh-roofH);
+    ctx.lineTo(cx, cy-bh);
+    ctx.closePath();
+    ctx.fill();
+    
     ctx.fillStyle = night?'#5a3a2a':(dusk?'#a06030':'#c07840');
-    ctx.beginPath(); ctx.moveTo(cx+hw*1.05,cy-hh-bh); ctx.lineTo(cx,cy-hh-bh-roofH); ctx.lineTo(cx,cy-hh-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx+hw*1.05, cy-bh);
+    ctx.lineTo(cx, cy-bh-roofH);
+    ctx.lineTo(cx, cy-bh);
+    ctx.closePath();
+    ctx.fill();
 
-    // 门窗（在右侧面 cy-hh 附近）
-    const bodyBase = cy - hh; // 主体底边 = 菱形顶面
+    // 门窗（在右侧面）
+    const bodyBase = cy; // 主体底边在 cy
     if (!night) {
-        ctx.fillStyle='#6a9fd4'; ctx.fillRect(cx-5*s,bodyBase+bh*0.2,6*s,bh*0.35);
-        ctx.fillStyle='#f0d080'; ctx.fillRect(cx+3*s,bodyBase+bh*0.45,5*s,5*s);
+        ctx.fillStyle='#6a9fd4'; ctx.fillRect(cx-5*s,bodyBase-bh*0.2,6*s,bh*0.35);
+        ctx.fillStyle='#f0d080'; ctx.fillRect(cx+3*s,bodyBase-bh*0.45,5*s,5*s);
     } else {
-        ctx.fillStyle='#f8d060'; ctx.fillRect(cx-5*s,bodyBase+bh*0.2,6*s,bh*0.35);
-        ctx.fillStyle='#f8d060'; ctx.fillRect(cx+3*s,bodyBase+bh*0.45,5*s,5*s);
+        ctx.fillStyle='#f8d060'; ctx.fillRect(cx-5*s,bodyBase-bh*0.2,6*s,bh*0.35);
+        ctx.fillStyle='#f8d060'; ctx.fillRect(cx+3*s,bodyBase-bh*0.45,5*s,5*s);
     }
 
-    // emoji（在顶面上方）
+    // emoji
     const emojiSize = Math.max(20, TILE_W*0.48);
     ctx.fillStyle='rgba(0,0,0,'+(night?0.4:0.2)+')';
     ctx.font=emojiSize+'px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(emoji,cx+2*s,bodyBase-bh+emojiSize*0.1+2*s);
+    ctx.fillText(emoji,cx+2*s,cy-bh+emojiSize*0.1+2*s);
 
     // 夜晚发光
     if (night) {
-        const grd=ctx.createRadialGradient(cx,bodyBase-bh*0.3,0,cx,bodyBase-bh*0.3,TILE_W*0.9);
+        const grd=ctx.createRadialGradient(cx,cy-bh*0.3,0,cx,cy-bh*0.3,TILE_W*0.9);
         grd.addColorStop(0,'rgba(255,200,60,0.5)'); grd.addColorStop(0.5,'rgba(255,140,30,0.2)'); grd.addColorStop(1,'rgba(255,80,0,0)');
-        ctx.fillStyle=grd; ctx.fillRect(cx-TILE_W*0.9,bodyBase-bh-TILE_W*0.9,TILE_W*1.8,TILE_W*1.8);
+        ctx.fillStyle=grd; ctx.fillRect(cx-TILE_W*0.9,cy-bh-TILE_W*0.9,TILE_W*1.8,TILE_W*1.8);
     }
+
+    ctx.fillStyle=night?'#ffe080':'#ffffff';
+    ctx.fillText(emoji,cx,cy-bh+emojiSize*0.1);
+}
 
     ctx.fillStyle=night?'#ffe080':'#ffffff';
     ctx.fillText(emoji,cx,bodyBase-bh+emojiSize*0.1);
