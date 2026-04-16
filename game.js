@@ -485,6 +485,7 @@ function render() {
 
 // ---- 远景山丘 ----
 function renderHills(s, w, h, sky, night) {
+    const dusk = isDusk();
     const hillY = ORIGIN_Y + (GRID_COLS + GRID_ROWS) * TILE_H / 2;
     // 背景山
     ctx.fillStyle = night ? 'rgba(20,30,20,0.8)' : (dusk ? 'rgba(150,80,80,0.35)' : 'rgba(80,140,80,0.25)');
