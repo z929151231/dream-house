@@ -570,6 +570,7 @@ function renderZone(s,w,h,night,dusk) {
     const brInfo = zoneGridToScreen(2,2,zone);
     const groundW = brInfo.x - tlInfo.x + maxTileW + 10*s;
     const groundH = brInfo.y - tlInfo.y + maxTileW*0.65 + 10*s;
+    const gx = w/2 - groundW/2;
 
     // 区域地面渐变
     const groundGrd = ctx.createLinearGradient(gx,gridTop-5*s,gx,gridTop-5*s+groundH);
@@ -577,8 +578,6 @@ function renderZone(s,w,h,night,dusk) {
     else if (dusk) { groundGrd.addColorStop(0,'#2a5a2a'); groundGrd.addColorStop(1,'#1a4020'); }
     else { groundGrd.addColorStop(0,'#2a7a30'); groundGrd.addColorStop(1,'#1a5a20'); }
     ctx.fillStyle=groundGrd;
-
-    const gx = w/2 - groundW/2;
     ctx.beginPath();
     ctx.roundRect(gx, gridTop-5*s, groundW, groundH, 12*s);
     ctx.fill();
