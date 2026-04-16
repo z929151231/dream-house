@@ -94,7 +94,6 @@ let canvas, ctx;
 let UI = {};
 let rippleList = [];
 let houseModal = null;
-let toastTimer = 0;
 let lastTX = 0, lastTY = 0, tapped = false;
 
 // ============================================================
@@ -475,7 +474,7 @@ function sellZone() {
     showToast('🏡 出售 ' + zone.name + ' +' + bonus + ' 💰');
 }
 
-function showToast(msg) { gameState.toastMsg=msg; toastTimer=150; gameState.toastTimer=150; }
+function showToast(msg) { toastMsg=msg; toastTimer=150; }
 
 // ============================================================
 // 时间系统
@@ -501,7 +500,7 @@ function gameLoop() {
     updateParticles(dt);
     updateRipples();
     render();
-    if (toastTimer>0) { toastTimer--; gameState.toastTimer=toastTimer; }
+    if (toastTimer>0) toastTimer--;
     requestAnimationFrame(gameLoop);
 }
 
@@ -541,7 +540,7 @@ function render() {
 
     // UI
     renderTopBar(s,w,h,sky);
-    renderZoneSelector(s,w,h,night);
+    renderZoneSelector(s,w,h);
     renderShop(s,w,h,night);
     renderToast(s,w,h);
     renderHouseModal(s,w,h);
@@ -839,7 +838,7 @@ function renderZoneHouse(s,zone,night,dusk) {
 // ============================================================
 // 区域选择器
 // ============================================================
-function renderZoneSelector(s,w,h,night) {
+function renderZoneSelector(s,w,h) {
     const barY = 58*s;
     const btnW = 42*s, btnH = 42*s;
     const totalW = ZONES.length*(btnW+4*s);
@@ -940,7 +939,7 @@ function renderToast(s,w,h) {
     ctx.fillStyle='rgba(0,0,0,'+alpha+')';
     ctx.beginPath(); ctx.roundRect(w/2-100*s,h/2-22*s,200*s,38*s,19*s); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font=(12*s)+'px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(gameState.toastMsg,w/2,h/2+6*s);
+    ctx.fillText(toastMsg,w/2,h/2+6*s);
 }
 
 // ============================================================
