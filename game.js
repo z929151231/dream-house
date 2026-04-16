@@ -555,56 +555,56 @@ function renderHouse(s, night, dusk) {
     const h = gameState.house;
     const lvl = HOUSE_LEVELS[h.level-1];
     const emoji = h.style ? h.style.emoji : lvl.emoji;
-    // 用 +0.5 与 renderTile 一致，取格子菱形的几何中心
     const {x:cx, y:cy} = isoToScreen(HOUSE_COL+0.5, HOUSE_ROW+0.5);
     const bh = lvl.bodyH * s;
-    const hw=TILE_W*0.45, hh=TILE_H*0.45;
+    const hw=TILE_W*0.46, hh=TILE_H*0.46;
 
-    // 3D 主体（直接坐在菱形顶面上，左右底边与菱形顶边对齐）
+    // 3D 主体：从菱形顶面 cy-hh 往上长（不再有底部露出）
     const bodyColor = night?'#4a3a2a':(dusk?'#a07848':'#d4b87a');
     const bodyDark  = night?'#2a1a0a':(dusk?'#7a5830':'#b89860');
     const bodyTop   = night?'#5a4a3a':(dusk?'#b08850':'#e4c880');
-    // 左侧面
+    // 左侧面（底部对齐菱形顶面）
     ctx.fillStyle = bodyDark;
-    ctx.beginPath(); ctx.moveTo(cx-hw,cy); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx-hw,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx-hw,cy-hh); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx-hw,cy-hh-bh); ctx.closePath(); ctx.fill();
     // 右侧面
     ctx.fillStyle = bodyColor;
-    ctx.beginPath(); ctx.moveTo(cx+hw,cy); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx+hw,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx+hw,cy-hh); ctx.lineTo(cx,cy+hh); ctx.lineTo(cx,cy+hh-bh); ctx.lineTo(cx+hw,cy-hh-bh); ctx.closePath(); ctx.fill();
     // 顶面
     ctx.fillStyle = bodyTop;
-    ctx.beginPath(); ctx.moveTo(cx,cy-bh-hh); ctx.lineTo(cx+hw,cy-bh); ctx.lineTo(cx,cy-bh+hh); ctx.lineTo(cx-hw,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,cy-hh-bh-hh); ctx.lineTo(cx+hw,cy-hh-bh); ctx.lineTo(cx,cy-hh-bh+hh); ctx.lineTo(cx-hw,cy-hh-bh); ctx.closePath(); ctx.fill();
 
-    // 屋顶
+    // 屋顶（从顶面边缘升起）
     const roofH = bh * 0.55;
     ctx.fillStyle = night?'#3a2010':(dusk?'#704020':'#a05830');
-    ctx.beginPath(); ctx.moveTo(cx-hw*1.1,cy-bh); ctx.lineTo(cx,cy-bh-roofH); ctx.lineTo(cx,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx-hw*1.05,cy-hh-bh); ctx.lineTo(cx,cy-hh-bh-roofH); ctx.lineTo(cx,cy-hh-bh); ctx.closePath(); ctx.fill();
     ctx.fillStyle = night?'#5a3a2a':(dusk?'#a06030':'#c07840');
-    ctx.beginPath(); ctx.moveTo(cx+hw*1.1,cy-bh); ctx.lineTo(cx,cy-bh-roofH); ctx.lineTo(cx,cy-bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx+hw*1.05,cy-hh-bh); ctx.lineTo(cx,cy-hh-bh-roofH); ctx.lineTo(cx,cy-hh-bh); ctx.closePath(); ctx.fill();
 
-    // 门窗
+    // 门窗（在右侧面 cy-hh 附近）
+    const bodyBase = cy - hh; // 主体底边 = 菱形顶面
     if (!night) {
-        ctx.fillStyle='#6a9fd4'; ctx.fillRect(cx-5*s,cy-bh*0.4,6*s,bh*0.4);
-        ctx.fillStyle='#f0d080'; ctx.fillRect(cx+3*s,cy-bh*0.7,5*s,5*s);
+        ctx.fillStyle='#6a9fd4'; ctx.fillRect(cx-5*s,bodyBase+bh*0.2,6*s,bh*0.35);
+        ctx.fillStyle='#f0d080'; ctx.fillRect(cx+3*s,bodyBase+bh*0.45,5*s,5*s);
     } else {
-        ctx.fillStyle='#f8d060'; ctx.fillRect(cx-5*s,cy-bh*0.4,6*s,bh*0.4);
-        ctx.fillStyle='#f8d060'; ctx.fillRect(cx+3*s,cy-bh*0.7,5*s,5*s);
+        ctx.fillStyle='#f8d060'; ctx.fillRect(cx-5*s,bodyBase+bh*0.2,6*s,bh*0.35);
+        ctx.fillStyle='#f8d060'; ctx.fillRect(cx+3*s,bodyBase+bh*0.45,5*s,5*s);
     }
 
-    // emoji 阴影
+    // emoji（在顶面上方）
     const emojiSize = Math.max(20, TILE_W*0.48);
     ctx.fillStyle='rgba(0,0,0,'+(night?0.4:0.2)+')';
     ctx.font=emojiSize+'px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(emoji,cx+2*s,cy-bh+emojiSize*0.1+2*s);
+    ctx.fillText(emoji,cx+2*s,bodyBase-bh+emojiSize*0.1+2*s);
 
     // 夜晚发光
     if (night) {
-        const grd=ctx.createRadialGradient(cx,cy-bh*0.5,0,cx,cy-bh*0.5,TILE_W*0.9);
+        const grd=ctx.createRadialGradient(cx,bodyBase-bh*0.3,0,cx,bodyBase-bh*0.3,TILE_W*0.9);
         grd.addColorStop(0,'rgba(255,200,60,0.5)'); grd.addColorStop(0.5,'rgba(255,140,30,0.2)'); grd.addColorStop(1,'rgba(255,80,0,0)');
-        ctx.fillStyle=grd; ctx.fillRect(cx-TILE_W*0.9,cy-bh-TILE_W*0.9,TILE_W*1.8,TILE_W*1.8);
+        ctx.fillStyle=grd; ctx.fillRect(cx-TILE_W*0.9,bodyBase-bh-TILE_W*0.9,TILE_W*1.8,TILE_W*1.8);
     }
 
     ctx.fillStyle=night?'#ffe080':'#ffffff';
-    ctx.fillText(emoji,cx,cy-bh+emojiSize*0.1);
+    ctx.fillText(emoji,cx,bodyBase-bh+emojiSize*0.1);
 }
 
 // ============================================================
