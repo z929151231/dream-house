@@ -50,7 +50,7 @@ const SHOP_ITEMS = [
 
 // ---- 游戏状态 ----
 const gameState = {
-    money: 0,
+    money: 9999,
     totalEarned: 0,
     zones: ZONES.map(z => ({
         ...z,
@@ -571,9 +571,12 @@ function renderZone(s,w,h,night,dusk) {
     const groundW = brInfo.x - tlInfo.x + maxTileW + 10*s;
     const groundH = brInfo.y - tlInfo.y + maxTileW*0.65 + 10*s;
 
-    if (night) ctx.fillStyle='#1a3a1a';
-    else if (dusk) ctx.fillStyle='#2a5a2a';
-    else ctx.fillStyle='#2a6a28';
+    // 区域地面渐变
+    const groundGrd = ctx.createLinearGradient(gx,gridTop-5*s,gx,gridTop-5*s+groundH);
+    if (night) { groundGrd.addColorStop(0,'#1a3a1a'); groundGrd.addColorStop(1,'#0f2515'); }
+    else if (dusk) { groundGrd.addColorStop(0,'#2a5a2a'); groundGrd.addColorStop(1,'#1a4020'); }
+    else { groundGrd.addColorStop(0,'#2a7a30'); groundGrd.addColorStop(1,'#1a5a20'); }
+    ctx.fillStyle=groundGrd;
 
     const gx = w/2 - groundW/2;
     ctx.beginPath();
@@ -581,10 +584,11 @@ function renderZone(s,w,h,night,dusk) {
     ctx.fill();
 
     // 区域名称标签
-    const labelY = gridTop - 16*s;
-    ctx.fillStyle='rgba(0,0,0,0.35)';
-    ctx.beginPath(); ctx.roundRect(w/2-60*s, labelY, 120*s, 20*s, 10*s); ctx.fill();
-    ctx.fillStyle='#ffd700'; ctx.font='bold '+(11*s)+'px sans-serif'; ctx.textAlign='center';
+    const labelY = gridTop - 18*s;
+    ctx.fillStyle='rgba(20,40,30,0.8)';
+    ctx.beginPath(); ctx.roundRect(w/2-65*s, labelY-2*s, 130*s, 24*s, 12*s); ctx.fill();
+    ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(w/2-65*s, labelY-2*s, 130*s, 24*s, 12*s); ctx.stroke();
+    ctx.fillStyle='#ffd700'; ctx.font='bold '+(12*s)+'px sans-serif'; ctx.textAlign='center';
     ctx.fillText(zone.emoji+' '+zone.name, w/2, labelY+14*s);
 
     if (!zone.unlocked) {
@@ -840,47 +844,60 @@ function renderZoneHouse(s,zone,night,dusk) {
 // 区域选择器
 // ============================================================
 function renderZoneSelector(s,w,h,night) {
-    const barY = 58*s;
-    const btnW = 42*s, btnH = 42*s;
-    const totalW = ZONES.length*(btnW+4*s);
+    const barY = 62*s;
+    const btnW = 44*s, btnH = 44*s;
+    const totalW = ZONES.length*(btnW+6*s);
     const startX = (w-totalW)/2;
 
     ZONES.forEach((z,idx)=>{
-        const bx = startX+idx*(btnW+4*s);
+        const bx = startX+idx*(btnW+6*s);
         const by = barY - btnH/2;
         const isSelected = idx===gameState.selectedZone;
         const isUnlocked = z.unlocked;
 
-        // 背景
+        // 选中高亮
         if (isSelected) {
-            ctx.fillStyle='rgba(255,255,255,0.25)';
-            ctx.beginPath(); ctx.roundRect(bx-3*s,by-3*s,btnW+6*s,btnH+6*s,14*s); ctx.fill();
-            ctx.strokeStyle='rgba(255,220,100,0.8)'; ctx.lineWidth=2;
-            ctx.beginPath(); ctx.roundRect(bx-3*s,by-3*s,btnW+6*s,btnH+6*s,14*s); ctx.stroke();
+            ctx.fillStyle='rgba(255,215,0,0.2)';
+            ctx.beginPath(); ctx.roundRect(bx-4*s,by-4*s,btnW+8*s,btnH+8*s,14*s); ctx.fill();
+            ctx.strokeStyle='rgba(255,215,0,0.9)'; ctx.lineWidth=2.5;
+            ctx.beginPath(); ctx.roundRect(bx-4*s,by-4*s,btnW+8*s,btnH+8*s,14*s); ctx.stroke();
         }
 
-        ctx.fillStyle = isUnlocked ? (night? 'rgba(60,100,60,0.8)' : 'rgba(60,130,60,0.85)')
-                                  : (night? 'rgba(40,40,40,0.8)' : 'rgba(80,80,80,0.8)');
-        ctx.beginPath(); ctx.roundRect(bx,by,btnW,btnH,10*s); ctx.fill();
+        // 按钮背景
+        const btnGrd = ctx.createLinearGradient(bx,by,bx,by+btnH);
+        if (isUnlocked) {
+            btnGrd.addColorStop(0, night?'rgba(50,90,50,0.9)':'rgba(60,140,60,0.9)');
+            btnGrd.addColorStop(1, night?'rgba(30,60,30,0.95)':'rgba(40,100,40,0.95)');
+        } else {
+            btnGrd.addColorStop(0,'rgba(60,60,60,0.85)');
+            btnGrd.addColorStop(1,'rgba(40,40,40,0.9)');
+        }
+        ctx.fillStyle=btnGrd; ctx.beginPath(); ctx.roundRect(bx,by,btnW,btnH,12*s); ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(bx,by,btnW,btnH,12*s); ctx.stroke();
 
-        ctx.font=(20*s)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillStyle=isUnlocked?'#fff':'rgba(150,150,150,0.7)'; ctx.fillText(z.emoji,bx+btnW/2,by+btnH/2);
+        // emoji
+        ctx.font=(22*s)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillStyle=isUnlocked?'#fff':'rgba(150,150,150,0.6)'; ctx.fillText(z.emoji,bx+btnW/2,by+btnH/2);
 
-        // 解锁指示
+        // 锁定标记
         if (!isUnlocked) {
-            ctx.font=(9*s)+'px sans-serif'; ctx.fillStyle='#f87171';
-            ctx.fillText('🔒',bx+btnW/2,by+btnH+5*s);
+            ctx.font=(10*s)+'px sans-serif'; ctx.fillStyle='#f87171';
+            ctx.fillText('🔒',bx+btnW/2,by+btnH+6*s);
         }
     });
 
-    // 基地赚金币提示（左侧）
+    // 基地赚金币按钮
     const zone = gameState.zones[gameState.selectedZone];
     if (zone.isBase) {
-        ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.roundRect(8*s,barY-btnH/2-4*s,64*s,btnH+8*s,10*s); ctx.fill();
-        ctx.font=(10*s)+'px sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#ffd700';
-        ctx.fillText('💰赚金币',8*s+32*s,barY+2*s);
-        ctx.font=(9*s)+'px sans-serif'; ctx.fillStyle='rgba(255,220,100,0.8)';
-        ctx.fillText('+'+getZoneEarnRate(),8*s+32*s,barY+15*s);
+        const earnGrd = ctx.createLinearGradient(8*s,barY-btnH/2-2*s,8*s,barY+btnH/2+6*s);
+        earnGrd.addColorStop(0,'rgba(255,180,50,0.9)');
+        earnGrd.addColorStop(1,'rgba(200,140,30,0.95)');
+        ctx.fillStyle=earnGrd; ctx.beginPath(); ctx.roundRect(8*s,barY-btnH/2-2*s,68*s,btnH+8*s,12*s); ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.roundRect(8*s,barY-btnH/2-2*s,68*s,btnH+8*s,12*s); ctx.stroke();
+        ctx.font='bold '+(11*s)+'px sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#fff';
+        ctx.fillText('💰赚金币',8*s+34*s,barY+2*s);
+        ctx.font=(10*s)+'px sans-serif'; ctx.fillStyle='rgba(255,255,255,0.85)';
+        ctx.fillText('+'+getZoneEarnRate()+'/次',8*s+34*s,barY+16*s);
     }
 }
 
@@ -888,31 +905,45 @@ function renderZoneSelector(s,w,h,night) {
 // 顶部栏
 // ============================================================
 function renderTopBar(s,w,h,sky) {
-    ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.roundRect(10*s,8*s,w-20*s,42*s,12*s); ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.roundRect(14*s,12*s,68*s,22*s,10*s); ctx.fill();
-    ctx.font=(10*s)+'px sans-serif'; ctx.textAlign='left'; ctx.fillStyle='#ffd700';
-    ctx.fillText(sky.name,w-160*s,23*s);
-    ctx.font='bold '+(15*s)+'px sans-serif'; ctx.textAlign='center';
-    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=3;
-    ctx.fillText('💰 '+gameState.money,w/2,27*s); ctx.shadowBlur=0;
-    ctx.font=(10*s)+'px sans-serif'; ctx.textAlign='right'; ctx.fillStyle='rgba(255,255,255,0.6)';
-    ctx.fillText('总收益:'+gameState.totalEarned+' | 区域:'+gameState.zones.filter(z=>z.unlocked).length+'/'+ZONES.length,w-14*s,27*s);
-    ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.font=(9*s)+'px sans-serif';
-    ctx.fillText('🌅时间切换 | 🏠基地赚金币 | 💰商店购物',w/2,42*s);
+    // 渐变顶栏背景
+    const barGrd = ctx.createLinearGradient(0,0,0,55*s);
+    barGrd.addColorStop(0,'rgba(20,60,40,0.85)');
+    barGrd.addColorStop(1,'rgba(10,40,25,0.9)');
+    ctx.fillStyle=barGrd; ctx.beginPath(); ctx.roundRect(8*s,6*s,w-16*s,48*s,16*s); ctx.fill();
+    // 金色边框
+    ctx.strokeStyle='rgba(255,215,0,0.3)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.roundRect(8*s,6*s,w-16*s,48*s,16*s); ctx.stroke();
+    // 时间标签
+    ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.beginPath(); ctx.roundRect(14*s,12*s,72*s,28*s,10*s); ctx.fill();
+    ctx.font=(11*s)+'px sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#ffd700';
+    ctx.fillText(sky.emoji+' '+sky.name,14*s+36*s,28*s);
+    // 金币（大号居中）
+    ctx.font='bold '+(22*s)+'px sans-serif'; ctx.textAlign='center';
+    ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=4;
+    ctx.fillStyle='#ffd700'; ctx.fillText('💰 '+gameState.money,w/2,32*s); ctx.shadowBlur=0;
+    // 右侧统计
+    ctx.font=(10*s)+'px sans-serif'; ctx.textAlign='right'; ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.fillText('总收益:'+gameState.totalEarned,w-14*s,24*s);
+    ctx.fillStyle='rgba(100,200,100,0.8)';
+    ctx.fillText('区域:'+gameState.zones.filter(z=>z.unlocked).length+'/'+ZONES.length,w-14*s,38*s);
 }
 
 // ============================================================
 // 商店
 // ============================================================
 function renderShop(s,w,h,night) {
-    const shopY = h - 126*s;
-    const shopH = 118*s;
-    ctx.fillStyle='rgba(0,0,0,0.35)';
-    ctx.beginPath(); ctx.roundRect(8*s,shopY,w-16*s,shopH,14*s); ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='bold '+(10*s)+'px sans-serif'; ctx.textAlign='left';
-    ctx.fillText('🛒 装饰商店',18*s,shopY+14*s);
-    ctx.textAlign='right'; ctx.fillStyle='#ffd700';
-    ctx.fillText('💰'+gameState.money, w-18*s, shopY+14*s);
+    const shopY = h - 130*s;
+    const shopH = 122*s;
+    // 商店背景渐变
+    const shopGrd = ctx.createLinearGradient(0,shopY,0,shopY+shopH);
+    shopGrd.addColorStop(0,'rgba(30,50,40,0.9)');
+    shopGrd.addColorStop(1,'rgba(15,30,20,0.95)');
+    ctx.fillStyle=shopGrd; ctx.beginPath(); ctx.roundRect(6*s,shopY,w-12*s,shopH,16*s); ctx.fill();
+    ctx.strokeStyle='rgba(255,215,0,0.25)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.roundRect(6*s,shopY,w-12*s,shopH,16*s); ctx.stroke();
+    // 标题
+    ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.font='bold '+(12*s)+'px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('🛒 装饰商店',16*s,shopY+16*s);
+    ctx.textAlign='right'; ctx.fillStyle='#ffd700'; ctx.font='bold '+(12*s)+'px sans-serif';
+    ctx.fillText('💰 '+gameState.money, w-16*s, shopY+16*s);
 
     const COLS = 8, itemW2=(w-16*s)/COLS-2*s, itemH=(shopH-30*s);
     SHOP_ITEMS.forEach((item,idx)=>{
