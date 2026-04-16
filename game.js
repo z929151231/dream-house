@@ -29,19 +29,19 @@ const PLANTS = [
 
 // ---- 房屋等级定义 ----
 const HOUSE_LEVELS = [
-    { level:1, name:'破房子',   emoji:'🏚️', bodyH:30, xpNeed:0,    xpRate:1,  styles:null },
-    { level:2, name:'小木屋',   emoji:'🛖',  bodyH:38, xpNeed:200,  xpRate:2,  styles:null },
-    { level:3, name:'砖瓦房',   emoji:'🏠',  bodyH:46, xpNeed:500,  xpRate:3,  styles:[
+    { level:1, name:'破房子',   emoji:'🏚️', bodyH:30, styles:null },
+    { level:2, name:'小木屋',   emoji:'🛖',  bodyH:38, styles:null },
+    { level:3, name:'砖瓦房',   emoji:'🏠',  bodyH:46, styles:[
         { id:'cottage',   name:'温馨小屋',  emoji:'🏡', desc:'温馨舒适的乡村小居' },
         { id:'bungalow',   name:'平房',      emoji:'🏠', desc:'简洁实用的单层住宅' },
         { id:'farmhouse', name:'农舍',      emoji:'🌾', desc:'带谷仓的田园农舍' },
     ]},
-    { level:4, name:'别墅',     emoji:'🏡',  bodyH:56, xpNeed:1200, xpRate:4,  styles:[
+    { level:4, name:'别墅',     emoji:'🏡',  bodyH:56, styles:[
         { id:'modern',   name:'现代别墅',  emoji:'🏢', desc:'极简现代风格' },
         { id:'japanese', name:'日式庭院',  emoji:'🏯', desc:'日式枯山水庭院' },
         { id:'european', name:'欧式庄园',  emoji:'🏰', desc:'典雅欧式城堡风' },
     ]},
-    { level:5, name:'城堡',     emoji:'🏰',  bodyH:72, xpNeed:2500, xpRate:5,  styles:null },
+    { level:5, name:'城堡',     emoji:'🏰',  bodyH:72, styles:null },
 ];
 
 // ---- 游戏状态 ----
@@ -57,7 +57,7 @@ const gameState = {
     timeOfDay: 0.4,      // 0~1
     timeFlow: 0,
     particles: [],       // 蝴蝶/萤火虫/花瓣
-    house: { level:1, style:null, xp:0 },
+    house: { level:1, style:null },
 };
 
 // ---- 等距坐标常量 ----
@@ -93,19 +93,7 @@ function init() {
     recalcIso();
     initParticles();
 
-    // 初始花园（房屋格子(4,4)不放植物）
-    const houseCell = HOUSE_COL + ',' + HOUSE_ROW;
-    const defaults = [
-        [3,3,'grass'],[5,3,'grass'],[4,3,'rose'],
-        [3,4,'pine'],[5,4,'pond'],
-        [3,5,'grass'],[5,5,'lavnd'],
-        [4,5,'sunf'],[3,6,'bush'],[5,6,'rock'],
-        [2,4,'lamp'],[6,4,'bench'],
-    ];
-    defaults.forEach(([c,r,p]) => {
-        if (c+','+r !== houseCell) addGardenItem(c, r, p, true);
-    });
-
+    // 初始只有房子，花园是空的
     wx.onTouchStart(onTouchStart);
     wx.onTouchMove(onTouchMove);
     wx.onTouchEnd(onTouchEnd);
@@ -285,35 +273,6 @@ function addGardenItem(col, row, plantId, instant) {
     });
 }
 
-// ============================================================
-// 房屋 XP 系统
-// ============================================================
-function updateHouseXp(dt) {
-    const house = gameState.house;
-    if (house.level >= HOUSE_LEVELS.length) return;
-    const xpNeed = HOUSE_LEVELS[house.level].xpNeed;
-    const xpRate = HOUSE_LEVELS[house.level].xpRate;
-    if (house.xp < xpNeed) {
-        house.xp += xpRate * dt;
-    }
-    if (house.xp >= xpNeed) {
-        house.xp = xpNeed;
-        const nextLevel = HOUSE_LEVELS[house.level];
-        if (nextLevel.styles && !house.style) {
-            houseModal = { type:'chooseStyle', styles:nextLevel.styles, callback: (chosen) => {
-                house.style = chosen;
-                house.level++;
-                house.style = null;
-                showToast('🏠 升级到 ' + HOUSE_LEVELS[house.level-1].name + '！');
-                houseModal = null;
-            }};
-        } else {
-            house.level++;
-            showToast('🏠 升级到 ' + HOUSE_LEVELS[house.level-1].name + '！');
-        }
-    }
-}
-
 function updatePlants() {
     const now = Date.now();
     gameState.garden.forEach(cell => {
@@ -354,22 +313,16 @@ function openUpgradeMenu() {
     const h = gameState.house;
     if (h.level >= HOUSE_LEVELS.length) { showToast('🏰 已达最高等级！'); return; }
     const next = HOUSE_LEVELS[h.level];
-    const xpNeed = next.xpNeed;
-    if (h.xp >= xpNeed) {
-        if (next.styles) {
-            houseModal = { type:'chooseStyle', styles:next.styles, callback:(chosen)=>{
-                h.style = chosen;
-                h.level++;
-                h.style = null;
-                showToast('🏠 升级到 ' + HOUSE_LEVELS[h.level-1].name + '！');
-                houseModal = null;
-            }};
-        } else {
+    if (next.styles) {
+        houseModal = { type:'chooseStyle', styles:next.styles, callback:(chosen)=>{
+            h.style = chosen;
             h.level++;
             showToast('🏠 升级到 ' + HOUSE_LEVELS[h.level-1].name + '！');
-        }
+            houseModal = null;
+        }};
     } else {
-        showToast('还需要 ' + Math.ceil(xpNeed - h.xp) + ' XP 升级');
+        h.level++;
+        showToast('🏠 升级到 ' + HOUSE_LEVELS[h.level-1].name + '！');
     }
 }
 
@@ -424,10 +377,10 @@ function handleTap(x, y) {
         if (iso.col === HOUSE_COL && iso.row === HOUSE_ROW) {
             const h = gameState.house;
             const lvl = HOUSE_LEVELS[h.level-1];
-            const xpNeed = h.level < HOUSE_LEVELS.length ? HOUSE_LEVELS[h.level].xpNeed : 0;
             const emoji = h.style ? h.style.emoji : lvl.emoji;
             const name = h.style ? h.style.name : lvl.name;
-            showToast(emoji + ' ' + name + ' | ' + Math.floor(h.xp) + '/' + xpNeed + ' XP');
+            const next = h.level < HOUSE_LEVELS.length ? ' → ' + HOUSE_LEVELS[h.level].name : '（最高级）';
+            showToast(emoji + ' ' + name + next);
             return;
         }
         // 点击已有格子
@@ -514,7 +467,6 @@ function gameLoop() {
 
     updateTime(dt);
     updatePlants();
-    updateHouseXp(dt);
     updateParticles(dt);
     updateRipples();
     render();
@@ -654,17 +606,6 @@ function renderHouse(s, night, dusk) {
 
     ctx.fillStyle=night?'#ffe080':'#ffffff';
     ctx.fillText(emoji,cx,cy-bh+emojiSize*0.1);
-
-    // XP 进度条
-    if (h.level < HOUSE_LEVELS.length) {
-        const xpNeed = HOUSE_LEVELS[h.level].xpNeed;
-        const barW = TILE_W*0.9, barH = 5*s;
-        const barX = cx-barW/2, barY = cy+hh*0.4+4*s;
-        const pct = Math.min(h.xp/xpNeed,1);
-        ctx.fillStyle='rgba(0,0,0,0.4)'; roundRect(ctx,barX-1,barY-1,barW+2,barH+2,3*s); ctx.fill();
-        ctx.fillStyle='rgba(0,0,0,0.3)'; roundRect(ctx,barX,barY,barW,barH,2*s); ctx.fill();
-        ctx.fillStyle=pct>=1?'#80ff80':'#ffd700'; roundRect(ctx,barX,barY,barW*pct,barH,2*s); ctx.fill();
-    }
 }
 
 // ============================================================
@@ -1046,7 +987,7 @@ function renderParticles(s, night) {
 // UI
 // ============================================================
 function renderTopBar(s, w, h, sky) {
-    ctx.fillStyle='rgba(0,0,0,0.3)'; roundRect(ctx,10*s,10*s,w-20*s,70*s,14*s); ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,0.3)'; roundRect(ctx,10*s,10*s,w-20*s,50*s,14*s); ctx.fill();
 
     // 时间按钮
     ctx.fillStyle='rgba(255,255,255,0.85)'; roundRect(ctx,14*s,14*s,78*s,28*s,12*s); ctx.fill();
@@ -1062,35 +1003,26 @@ function renderTopBar(s, w, h, sky) {
     ctx.font=(13*s)+'px sans-serif'; ctx.textAlign='right'; ctx.fillStyle='#aaffaa';
     ctx.fillText('Lv.'+gameState.level,w-100*s,37*s);
 
-    // 升级按钮（右上角）
+    // 升级按钮
     const h2 = gameState.house;
     const lvl = HOUSE_LEVELS[h2.level-1];
-    const next = HOUSE_LEVELS[h2.level];
-    const upgradeReady = h2.level < HOUSE_LEVELS.length && h2.xp >= next.xpNeed;
-    ctx.fillStyle = upgradeReady ? 'rgba(80,255,120,0.9)' : 'rgba(255,70,70,0.9)';
+    const isMax = h2.level >= HOUSE_LEVELS.length;
+    ctx.fillStyle = isMax ? 'rgba(100,100,100,0.6)' : 'rgba(80,200,255,0.9)';
     roundRect(ctx,w-92*s,14*s,80*s,28*s,12*s); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='bold '+(11*s)+'px sans-serif'; ctx.textAlign='center';
     const btnEmoji = h2.style ? h2.style.emoji : lvl.emoji;
-    ctx.fillText(btnEmoji+' 升级',w-52*s,33*s);
+    ctx.fillText(isMax ? '🏰 MAX' : btnEmoji+' 升级',w-52*s,33*s);
 
-    // 房屋信息行
+    // 房屋名称
     const houseName = h2.style ? h2.style.name : lvl.name;
     ctx.font=(10*s)+'px sans-serif'; ctx.textAlign='left'; ctx.fillStyle='#aaffaa';
-    ctx.fillText('🏠 '+houseName, 20*s, 55*s);
-    if (h2.level < HOUSE_LEVELS.length) {
-        const xpPct = Math.min(h2.xp / next.xpNeed, 1);
-        ctx.fillStyle='rgba(255,255,255,0.2)'; roundRect(ctx,20*s,59*s,120*s,6*s,3*s); ctx.fill();
-        ctx.fillStyle=xpPct>=1?'#80ff80':'#ffd700'; roundRect(ctx,20*s,59*s,120*xpPct*s,6*s,3*s); ctx.fill();
-        ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.fillText(Math.floor(h2.xp)+'/'+next.xpNeed+' XP',145*s,65*s);
-    } else {
-        ctx.fillStyle='rgba(100,255,100,0.7)'; ctx.fillText('🏰 MAX',145*s,65*s);
-    }
+    ctx.fillText('🏠 '+houseName, 20*s, 53*s);
 
     // 选中提示
     if (gameState.selectedPlant) {
-        ctx.fillStyle='rgba(0,0,0,0.45)'; roundRect(ctx,w/2-85*s,72*s,170*s,28*s,12*s); ctx.fill();
+        ctx.fillStyle='rgba(0,0,0,0.45)'; roundRect(ctx,w/2-85*s,58*s,170*s,28*s,12*s); ctx.fill();
         ctx.fillStyle='#fff'; ctx.font=(12*s)+'px sans-serif'; ctx.textAlign='center';
-        ctx.fillText('已选 '+gameState.selectedPlant.emoji+' '+gameState.selectedPlant.name,w/2,91*s);
+        ctx.fillText('已选 '+gameState.selectedPlant.emoji+' '+gameState.selectedPlant.name,w/2,77*s);
     }
 }
 
