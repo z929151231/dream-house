@@ -41,7 +41,7 @@ window.addEventListener('resize', () => {
     const dpr = window.devicePixelRatio || 1;
     el.width = window.innerWidth * dpr; el.height = window.innerHeight * dpr;
     el.style.width = window.innerWidth + 'px'; el.style.height = window.innerHeight + 'px';
-    if (canvas) { canvas.width = el.width; canvas.height = el.height; }
+    el.width = window.innerWidth * dpr; el.height = window.innerHeight * dpr;
 });
 </script>
 <script src="game.js"></script>

@@ -540,7 +540,7 @@ function render() {
 
     // UI
     renderTopBar(s,w,h,sky);
-    renderZoneSelector(s,w,h);
+    renderZoneSelector(s,w,h,night);
     renderShop(s,w,h,night);
     renderToast(s,w,h);
     renderHouseModal(s,w,h);
@@ -838,7 +838,7 @@ function renderZoneHouse(s,zone,night,dusk) {
 // ============================================================
 // 区域选择器
 // ============================================================
-function renderZoneSelector(s,w,h) {
+function renderZoneSelector(s,w,h,night) {
     const barY = 58*s;
     const btnW = 42*s, btnH = 42*s;
     const totalW = ZONES.length*(btnW+4*s);
