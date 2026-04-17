@@ -152,8 +152,8 @@ function grad(ctx, x1,y1,c1,x2,y2,c2) {
     const g = ctx.createLinearGradient(x1,y1,x2,y2);
     g.addColorStop(0,c1); g.addColorStop(1,c2); return g;
 }
-function rgrad(ctx, cx,cy,r,c1,c2) {
-    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+function rgrad(ctx, cx,cy,ri,r,c1,c2) {
+    const g = ctx.createRadialGradient(cx,cy,ri,cx,cy,r);
     g.addColorStop(0,c1); g.addColorStop(1,c2); return g;
 }
 
