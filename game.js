@@ -153,6 +153,11 @@ function grad(ctx, x1,y1,c1,x2,y2,c2) {
     g.addColorStop(0,c1); g.addColorStop(1,c2); return g;
 }
 function rgrad(ctx, cx,cy,ri,r,c1,c2) {
+    // 防御：确保所有参数都是有效类型
+    ri = (typeof ri === 'number' && ri >= 0) ? ri : 0;
+    r  = (typeof r  === 'number' && r  >  0) ? r  : 1;
+    c1 = (typeof c1 === 'string' && c1 !== '') ? c1 : 'rgba(128,128,128,0.5)';
+    c2 = (typeof c2 === 'string' && c2 !== '') ? c2 : 'rgba(0,0,0,0)';
     const g = ctx.createRadialGradient(cx,cy,ri,cx,cy,r);
     g.addColorStop(0,c1); g.addColorStop(1,c2); return g;
 }
