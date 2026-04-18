@@ -485,7 +485,8 @@ function buildWoodenHut() {
   
   // 主体（原木色墙壁）
   var wallMat = new THREE.MeshPhongMaterial({color: c.wall});
-  wallMat.map = woodTex;
+  if (woodTex) wallMat.map = woodTex;
+  
   // 前墙
   var front = new THREE.Mesh(new THREE.BoxGeometry(4*s, 3*s, 0.25), wallMat);
   front.position.set(0, 1.65*s, -2*s);
@@ -506,34 +507,63 @@ function buildWoodenHut() {
   right.position.x = 2*s;
   houseGroup.add(right);
   
-  // A字三角顶
-  var roofShape = new THREE.Shape();
-  roofShape.moveTo(-2.5*s, 0);
-  roofShape.lineTo(0, 2.5*s);
-  roofShape.lineTo(2.5*s, 0);
-  roofShape.lineTo(-2.5*s, 0);
-  var roofGeo = new THREE.ExtrudeGeometry(roofShape, {depth: 5*s, bevelEnabled: false});
+  // A字顶：两个斜面
   var roofMat = new THREE.MeshPhongMaterial({color: c.roof});
-  var roof = new THREE.Mesh(roofGeo, roofMat);
-  roof.rotation.x = Math.PI/2;
-  roof.position.set(0, 3*s, 2.5*s);
-  roof.castShadow = true;
-  houseGroup.add(roof);
+  var slopeLen = Math.sqrt(2.5*2.5 + 2.5*2.5) * s;
+  
+  // 左坡
+  var leftSlope = new THREE.Mesh(new THREE.BoxGeometry(0.12, slopeLen, 5*s), roofMat);
+  leftSlope.rotation.z = Math.PI/4;
+  leftSlope.position.set(-1.25*s, 4.25*s, 0);
+  leftSlope.castShadow = true;
+  houseGroup.add(leftSlope);
+  
+  // 右坡
+  var rightSlope = new THREE.Mesh(new THREE.BoxGeometry(0.12, slopeLen, 5*s), roofMat);
+  rightSlope.rotation.z = -Math.PI/4;
+  rightSlope.position.set(1.25*s, 4.25*s, 0);
+  rightSlope.castShadow = true;
+  houseGroup.add(rightSlope);
+  
+  // 屋脊封条
+  var ridge = new THREE.Mesh(new THREE.BoxGeometry(0.2, 5.2*s, 0.25), new THREE.MeshPhongMaterial({color: shadeColor(c.roof, -20)}));
+  ridge.rotation.x = Math.PI/2;
+  ridge.position.set(0, 5.5*s, 0);
+  houseGroup.add(ridge);
   
   // 门
   var door = new THREE.Mesh(new THREE.BoxGeometry(0.9*s, 1.8*s, 0.15), new THREE.MeshPhongMaterial({color: c.door}));
   door.position.set(0, 1.0*s, -2.1*s);
   houseGroup.add(door);
+  // 门把手
+  var knob = new THREE.Mesh(new THREE.SphereGeometry(0.06*s, 8, 6), new THREE.MeshPhongMaterial({color: '#ffd700'}));
+  knob.position.set(0.25*s, 1.0*s, -2.0*s);
+  houseGroup.add(knob);
   
   // 小圆窗
-  var win = new THREE.Mesh(new THREE.CircleGeometry(0.4*s, 16), new THREE.MeshPhongMaterial({color: c.win, transparent: true, opacity: 0.85}));
+  var winMat = new THREE.MeshPhongMaterial({color: c.win, transparent: true, opacity: 0.85});
+  var win = new THREE.Mesh(new THREE.CircleGeometry(0.4*s, 16), winMat);
   win.position.set(0, 2.2*s, -2.1*s);
   houseGroup.add(win);
-  
   // 窗框
   var frame = new THREE.Mesh(new THREE.RingGeometry(0.35*s, 0.45*s, 16), new THREE.MeshPhongMaterial({color: c.wallS}));
   frame.position.set(0, 2.2*s, -2.08*s);
   houseGroup.add(frame);
+  // 窗户十字格
+  var crossH = new THREE.Mesh(new THREE.BoxGeometry(0.7*s, 0.04*s, 0.02), new THREE.MeshPhongMaterial({color: c.wallS}));
+  crossH.position.set(0, 2.2*s, -2.05*s);
+  houseGroup.add(crossH);
+  var crossV = new THREE.Mesh(new THREE.BoxGeometry(0.04*s, 0.7*s, 0.02), new THREE.MeshPhongMaterial({color: c.wallS}));
+  crossV.position.set(0, 2.2*s, -2.05*s);
+  houseGroup.add(crossV);
+  
+  // 侧面小方窗
+  [-2*s, 2*s].forEach(function(wx) {
+    var sideWin = new THREE.Mesh(new THREE.BoxGeometry(0.5*s, 0.5*s, 0.08), winMat);
+    sideWin.position.set(wx, 2*s, 0);
+    sideWin.rotation.y = Math.PI/2;
+    houseGroup.add(sideWin);
+  });
 }
 
 // ===== 2. 砖瓦房：传统四坡顶 =====
