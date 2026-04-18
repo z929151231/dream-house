@@ -38,6 +38,9 @@ var HOUSE_LEVELS = [
   { name:'梦幻城堡',scale:1.7, c:{wall:'#e1bee7',wallS:'#ce93d8',roof:'#6a1b9a',roofS:'#4a148c',win:'#fff9c4',door:'#4a148c',base:'#ce93d8'} },
 ];
 
+// 程序贴图（运行时生成）
+var brickTex, woodTex, roofTex, grassTex, stoneTex;
+
 // ===== 院子格子布局 =====
 // 院子是以房子为中心的环形区域，分成若干可放置格子
 // 格子坐标系：以房子中心为原点，格子大小2x2
@@ -81,8 +84,147 @@ var camTarget = new THREE.Vector3(0, 0, 0);
 var isDragging = false, lastPointer = null;
 var pinchDist0 = 0;
 
+// ===== 程序贴图 =====
+function makeCanvas(w, h, drawFn) {
+  var cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  var ctx = cv.getContext('2d');
+  drawFn(ctx, w, h);
+  var tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function createTextures() {
+  // 砖墙
+  brickTex = makeCanvas(256, 256, function(ctx, w, h) {
+    ctx.fillStyle = '#c8a882'; ctx.fillRect(0, 0, w, h);
+    var bh = 18, bw = 45;
+    for (var y = 0; y < h; y += bh) {
+      var off = (Math.floor(y / bh) % 2 === 0) ? 0 : bw / 2;
+      for (var x = -bw; x < w + bw; x += bw) {
+        var bx = x + off;
+        var gap = 2;
+        // 砖块底色+明暗
+        var bright = 0.85 + Math.random() * 0.3;
+        ctx.fillStyle = 'rgba(' + Math.floor(180*bright) + ',' + Math.floor(140*bright) + ',' + Math.floor(100*bright) + ',1)';
+        ctx.fillRect(bx + gap, y + gap, bw - gap*2, bh - gap*2);
+        // 灰浆缝
+        ctx.fillStyle = '#8a7a6a';
+        ctx.fillRect(bx, y, bw, 2);
+        ctx.fillRect(bx, y, 2, bh);
+      }
+    }
+    // 表面纹理噪声
+    var id = ctx.getImageData(0, 0, w, h);
+    for (var i = 0; i < id.data.length; i += 4) {
+      var n = (Math.random() - 0.5) * 18;
+      id.data[i]   = Math.max(0, Math.min(255, id.data[i]   + n));
+      id.data[i+1] = Math.max(0, Math.min(255, id.data[i+1] + n));
+      id.data[i+2] = Math.max(0, Math.min(255, id.data[i+2] + n));
+    }
+    ctx.putImageData(id, 0, 0);
+  });
+  brickTex.repeat.set(2, 1.5);
+
+  // 木纹
+  woodTex = makeCanvas(256, 256, function(ctx, w, h) {
+    ctx.fillStyle = '#8b5e3c'; ctx.fillRect(0, 0, w, h);
+    // 竖向木纹
+    for (var x = 0; x < w; x += 8 + Math.random() * 6) {
+      var v = Math.floor(120 + Math.random() * 60);
+      ctx.fillStyle = 'rgba(' + v + ',' + Math.floor(v*0.7) + ',' + Math.floor(v*0.4) + ',0.5)';
+      ctx.fillRect(x, 0, 2 + Math.random() * 4, h);
+    }
+    // 年轮/节眼
+    for (var i = 0; i < 5; i++) {
+      var cx = Math.random() * w, cy = Math.random() * h;
+      var r = 4 + Math.random() * 8;
+      var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, 'rgba(100,60,30,0.6)');
+      g.addColorStop(0.7, 'rgba(130,80,40,0.3)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    }
+    // 噪声
+    var id = ctx.getImageData(0, 0, w, h);
+    for (var i2 = 0; i2 < id.data.length; i2 += 4) {
+      var n2 = (Math.random() - 0.5) * 12;
+      id.data[i2]   = Math.max(0, Math.min(255, id.data[i2]   + n2));
+      id.data[i2+1] = Math.max(0, Math.min(255, id.data[i2+1] + n2));
+      id.data[i2+2] = Math.max(0, Math.min(255, id.data[i2+2] + n2));
+    }
+    ctx.putImageData(id, 0, 0);
+  });
+  woodTex.repeat.set(1, 2);
+
+  // 瓦片屋顶
+  roofTex = makeCanvas(256, 256, function(ctx, w, h) {
+    ctx.fillStyle = '#4a4a5a'; ctx.fillRect(0, 0, w, h);
+    var tw = 22, th = 12;
+    for (var ty = 0; ty < h + th; ty += th) {
+      var off = (Math.floor(ty / th) % 2 === 0) ? 0 : tw / 2;
+      for (var tx = -tw; tx < w + tw; tx += tw) {
+        var bright = 0.7 + Math.random() * 0.3;
+        var r = Math.floor(80*bright), g = Math.floor(80*bright), b = Math.floor(100*bright);
+        ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+        ctx.beginPath();
+        ctx.moveTo(tx + off, ty);
+        ctx.lineTo(tx + off + tw/2, ty + th * 0.3);
+        ctx.lineTo(tx + off + tw, ty);
+        ctx.lineTo(tx + off + tw, ty + th * 0.7);
+        ctx.lineTo(tx + off + tw/2, ty + th);
+        ctx.lineTo(tx + off, ty + th * 0.7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#2a2a3a'; ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  });
+  roofTex.repeat.set(2, 2);
+
+  // 草地
+  grassTex = makeCanvas(256, 256, function(ctx, w, h) {
+    ctx.fillStyle = '#3d8b3d'; ctx.fillRect(0, 0, w, h);
+    for (var i = 0; i < 3000; i++) {
+      var x = Math.random() * w, y = Math.random() * h;
+      var g = Math.floor(50 + Math.random() * 50);
+      ctx.fillStyle = 'rgba(' + g + ',' + (g + 20) + ',0,0.4)';
+      ctx.fillRect(x, y, 1 + Math.random() * 2, 2 + Math.random() * 4);
+    }
+    // 深浅斑块
+    for (var i2 = 0; i2 < 15; i2++) {
+      ctx.fillStyle = 'rgba(30,80,20,' + (0.1 + Math.random() * 0.15) + ')';
+      ctx.beginPath();
+      ctx.arc(Math.random()*w, Math.random()*h, 10 + Math.random()*20, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+
+  // 石板
+  stoneTex = makeCanvas(256, 256, function(ctx, w, h) {
+    ctx.fillStyle = '#9e9e9e'; ctx.fillRect(0, 0, w, h);
+    var sw = 50, sh = 50;
+    for (var sy = 0; sy < h; sy += sh) {
+      var off2 = (Math.floor(sy / sh) % 2 === 0) ? 0 : sw/2;
+      for (var sx = -sw; sx < w + sw; sx += sw) {
+        var bx2 = sx + off2;
+        var bright2 = 0.85 + Math.random() * 0.3;
+        ctx.fillStyle = 'rgb(' + Math.floor(150*bright2) + ',' + Math.floor(148*bright2) + ',' + Math.floor(145*bright2) + ')';
+        ctx.fillRect(bx2 + 2, sy + 2, sw - 4, sh - 4);
+        ctx.strokeStyle = '#757575'; ctx.lineWidth = 2;
+        ctx.strokeRect(bx2 + 2, sy + 2, sw - 4, sh - 4);
+      }
+    }
+  });
+  stoneTex.repeat.set(3, 3);
+}
+
 // ===== 初始化 =====
 function init() {
+  createTextures();
+
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x87CEEB);
   scene.fog = new THREE.FogExp2(0x87CEEB, 0.012);
@@ -232,7 +374,7 @@ function updateDayNight() {
 function buildGround() {
   // 主草地
   var geo = new THREE.PlaneGeometry(60, 60, 1, 1);
-  var mat = new THREE.MeshPhongMaterial({ color: 0x5abf5a });
+  var mat = new THREE.MeshPhongMaterial({ map: grassTex });
   groundMesh = new THREE.Mesh(geo, mat);
   groundMesh.rotation.x = -Math.PI / 2;
   groundMesh.position.y = -0.01;
@@ -241,7 +383,7 @@ function buildGround() {
 
   // 小路（从房子门口延伸出去）
   var pathGeo = new THREE.BoxGeometry(2.0, 0.05, 12);
-  var pathMat = new THREE.MeshPhongMaterial({ color: 0xbdbdbd });
+  var pathMat = new THREE.MeshPhongMaterial({ map: stoneTex });
   var path = new THREE.Mesh(pathGeo, pathMat);
   path.position.set(0, 0.02, 8);
   path.receiveShadow = true;
@@ -252,8 +394,8 @@ function buildGround() {
 }
 
 function buildFenceRing(r) {
-  var postMat = new THREE.MeshPhongMaterial({ color: 0xa1887f });
-  var railMat = new THREE.MeshPhongMaterial({ color: 0x8d6e63 });
+  var postMat = new THREE.MeshPhongMaterial({ map: woodTex, color: 0xffffff });
+  var railMat = new THREE.MeshPhongMaterial({ map: woodTex, color: 0xffffff });
   var sides = 24;
   for (var i = 0; i < sides; i++) {
     var a = (i / sides) * Math.PI * 2;
@@ -328,17 +470,19 @@ function buildHouse() {
   houseGroup.add(base);
 
   // 主体 - 前墙
-  addWall(houseGroup, 6*s, 4*s, 0.3, 0, 2*s, -3*s, 0, c.wall, true);
+  addWall(houseGroup, 6*s, 4*s, 0.3, 0, 2*s, -3*s, 0, c.wall, true, brickTex);
   // 后墙
-  addWall(houseGroup, 6*s, 4*s, 0.3, 0, 2*s,  3*s, 0, c.wallS, true);
+  addWall(houseGroup, 6*s, 4*s, 0.3, 0, 2*s,  3*s, 0, c.wallS, true, brickTex);
   // 左墙
-  addWall(houseGroup, 0.3, 4*s, 6*s, -3*s, 2*s, 0, 0, c.wallS, true);
+  addWall(houseGroup, 0.3, 4*s, 6*s, -3*s, 2*s, 0, 0, c.wallS, true, brickTex);
   // 右墙
-  addWall(houseGroup, 0.3, 4*s, 6*s,  3*s, 2*s, 0, 0, c.wall, true);
+  addWall(houseGroup, 0.3, 4*s, 6*s,  3*s, 2*s, 0, 0, c.wall, true, brickTex);
 
   // 门（前墙中央）
   var doorGeo = new THREE.BoxGeometry(1.2*s, 2.4*s, 0.35);
-  var door = new THREE.Mesh(doorGeo, new THREE.MeshPhongMaterial({ color: c.door }));
+  var doorMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
+  doorMat.map = woodTex;
+  var door = new THREE.Mesh(doorGeo, doorMat);
   door.position.set(0, 1.2*s, -3*s);
   door.castShadow = true;
   houseGroup.add(door);
@@ -417,9 +561,13 @@ function buildHouse() {
   updateWindowGlow();
 }
 
-function addWall(group, w, h, d, x, y, z, ry, color, shadow) {
+function addWall(group, w, h, d, x, y, z, ry, color, shadow, tex) {
   var geo = new THREE.BoxGeometry(w, h, d);
   var mat = new THREE.MeshPhongMaterial({ color: color });
+  if (tex) {
+    mat.map = tex;
+    mat.color.set(0xffffff);
+  }
   var mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(x, y, z);
   if (ry) mesh.rotation.y = ry;
@@ -493,6 +641,8 @@ function makeRoofPanel(v0, v1, v2, v3, color) {
   geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
   geo.computeVertexNormals();
   var mat = new THREE.MeshPhongMaterial({ color: color, side: THREE.DoubleSide });
+  mat.map = roofTex;
+  mat.color.set(0xffffff);
   var mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
   return mesh;
