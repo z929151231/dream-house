@@ -463,108 +463,375 @@ function buildYardSlots() {
 // ===== 房屋 =====
 function buildHouse() {
   houseGroup.clear();
-  var lvl = HOUSE_LEVELS[gameState.houseLevel - 1];
-  var s = lvl.scale;
-  var c = lvl.c;
+  var lvl = gameState.houseLevel;
+  if (lvl === 1) buildWoodenHut();
+  else if (lvl === 2) buildBrickHouse();
+  else if (lvl === 3) buildEuropeanVilla();
+  else if (lvl === 4) buildModernMansion();
+  else buildCastle();
+  updateWindowGlow();
+}
 
-  // 基座台阶
-  var baseGeo = new THREE.BoxGeometry(7*s, 0.4, 7*s);
-  var base = new THREE.Mesh(baseGeo, new THREE.MeshPhongMaterial({ color: c.base }));
+// ===== 1. 小木屋：A字顶童话风 =====
+function buildWoodenHut() {
+  var c = HOUSE_LEVELS[0].c;
+  var s = HOUSE_LEVELS[0].scale;
+  
+  // 地基
+  var base = new THREE.Mesh(new THREE.BoxGeometry(5*s, 0.3, 5*s), new THREE.MeshPhongMaterial({color: c.base}));
+  base.position.y = 0.15;
+  base.receiveShadow = true;
+  houseGroup.add(base);
+  
+  // 主体（原木色墙壁）
+  var wallMat = new THREE.MeshPhongMaterial({color: c.wall});
+  wallMat.map = woodTex;
+  // 前墙
+  var front = new THREE.Mesh(new THREE.BoxGeometry(4*s, 3*s, 0.25), wallMat);
+  front.position.set(0, 1.65*s, -2*s);
+  front.castShadow = true;
+  front.receiveShadow = true;
+  houseGroup.add(front);
+  // 后墙
+  var back = front.clone();
+  back.position.z = 2*s;
+  houseGroup.add(back);
+  // 左墙
+  var left = new THREE.Mesh(new THREE.BoxGeometry(0.25, 3*s, 4*s), wallMat);
+  left.position.set(-2*s, 1.65*s, 0);
+  left.castShadow = true;
+  houseGroup.add(left);
+  // 右墙
+  var right = left.clone();
+  right.position.x = 2*s;
+  houseGroup.add(right);
+  
+  // A字三角顶
+  var roofShape = new THREE.Shape();
+  roofShape.moveTo(-2.5*s, 0);
+  roofShape.lineTo(0, 2.5*s);
+  roofShape.lineTo(2.5*s, 0);
+  roofShape.lineTo(-2.5*s, 0);
+  var roofGeo = new THREE.ExtrudeGeometry(roofShape, {depth: 5*s, bevelEnabled: false});
+  var roofMat = new THREE.MeshPhongMaterial({color: c.roof});
+  var roof = new THREE.Mesh(roofGeo, roofMat);
+  roof.rotation.x = Math.PI/2;
+  roof.position.set(0, 3*s, 2.5*s);
+  roof.castShadow = true;
+  houseGroup.add(roof);
+  
+  // 门
+  var door = new THREE.Mesh(new THREE.BoxGeometry(0.9*s, 1.8*s, 0.15), new THREE.MeshPhongMaterial({color: c.door}));
+  door.position.set(0, 1.0*s, -2.1*s);
+  houseGroup.add(door);
+  
+  // 小圆窗
+  var win = new THREE.Mesh(new THREE.CircleGeometry(0.4*s, 16), new THREE.MeshPhongMaterial({color: c.win, transparent: true, opacity: 0.85}));
+  win.position.set(0, 2.2*s, -2.1*s);
+  houseGroup.add(win);
+  
+  // 窗框
+  var frame = new THREE.Mesh(new THREE.RingGeometry(0.35*s, 0.45*s, 16), new THREE.MeshPhongMaterial({color: c.wallS}));
+  frame.position.set(0, 2.2*s, -2.08*s);
+  houseGroup.add(frame);
+}
+
+// ===== 2. 砖瓦房：传统四坡顶 =====
+function buildBrickHouse() {
+  var c = HOUSE_LEVELS[1].c;
+  var s = HOUSE_LEVELS[1].scale;
+  
+  // 地基
+  var base = new THREE.Mesh(new THREE.BoxGeometry(7*s, 0.4, 7*s), new THREE.MeshPhongMaterial({color: c.base}));
   base.position.y = 0.2;
   base.receiveShadow = true;
-  base.castShadow = true;
   houseGroup.add(base);
-
-  // 主体 - 前墙
-  addWall(houseGroup, 6*s, 4*s, 0.3, 0, 2*s, -3*s, 0, c.wall, true, brickTex);
-  // 后墙
-  addWall(houseGroup, 6*s, 4*s, 0.3, 0, 2*s,  3*s, 0, c.wallS, true, brickTex);
-  // 左墙
-  addWall(houseGroup, 0.3, 4*s, 6*s, -3*s, 2*s, 0, 0, c.wallS, true, brickTex);
-  // 右墙
-  addWall(houseGroup, 0.3, 4*s, 6*s,  3*s, 2*s, 0, 0, c.wall, true, brickTex);
-
-  // 门（前墙中央）
-  var doorGeo = new THREE.BoxGeometry(1.2*s, 2.4*s, 0.35);
-  var doorMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
-  doorMat.map = woodTex;
-  var door = new THREE.Mesh(doorGeo, doorMat);
-  door.position.set(0, 1.2*s, -3*s);
-  door.castShadow = true;
-  houseGroup.add(door);
-
-  // 门框
-  var dfMat = new THREE.MeshPhongMaterial({ color: shadeColor(c.door, 30) });
-  [[0.7*s, 2.6*s, 0.1], [-0.7*s, 2.6*s, 0.1]].forEach(function(p) {
-    var df = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.6*s, 0.35), dfMat);
-    df.position.set(p[0], p[1], -3*s);
-    houseGroup.add(df);
-  });
-  var dfTop = new THREE.Mesh(new THREE.BoxGeometry(1.5*s, 0.15, 0.35), dfMat);
-  dfTop.position.set(0, 2.5*s, -3*s);
-  houseGroup.add(dfTop);
-
-  // 窗户
-  var winMat = new THREE.MeshPhongMaterial({ color: c.win, transparent: true, opacity: 0.85 });
-  var winFrameMat = new THREE.MeshPhongMaterial({ color: shadeColor(c.wall, -20) });
-  var winPositions = [
-    [-1.5*s, 2.5*s, -3*s, 0],   // 前墙左窗
-    [ 1.5*s, 2.5*s, -3*s, 0],   // 前墙右窗
-    [-3*s,   2.5*s, -1*s, Math.PI/2],  // 左墙前窗
-    [-3*s,   2.5*s,  1*s, Math.PI/2],  // 左墙后窗
-    [ 3*s,   2.5*s, -1*s, Math.PI/2],  // 右墙前窗
-    [ 3*s,   2.5*s,  1*s, Math.PI/2],  // 右墙后窗
-    [-1.5*s, 2.5*s,  3*s, 0],   // 后墙左窗
-    [ 1.5*s, 2.5*s,  3*s, 0],   // 后墙右窗
-  ];
-  winPositions.forEach(function(wp) {
-    var win = new THREE.Mesh(new THREE.BoxGeometry(1.0*s, 1.0*s, 0.1), winMat.clone());
-    win.position.set(wp[0], wp[1], wp[2]);
-    win.rotation.y = wp[3];
-    houseGroup.add(win);
-    // 窗框
-    var wf = new THREE.Mesh(new THREE.BoxGeometry(1.1*s, 1.1*s, 0.08), winFrameMat);
-    wf.position.set(wp[0], wp[1], wp[2]);
-    wf.rotation.y = wp[3];
-    houseGroup.add(wf);
-  });
-
-  // 屋顶（四坡顶）
-  buildRoof(houseGroup, s, c);
-
+  
+  // 墙壁
+  var wallMat = new THREE.MeshPhongMaterial({color: 0xffffff});
+  wallMat.map = brickTex;
+  
+  addWall(houseGroup, 6*s, 4*s, 0.3, 0, 2*s, -3*s, 0, 0xffffff, true, brickTex);
+  addWall(houseGroup, 6*s, 4*s, 0.3, 0, 2*s, 3*s, 0, 0xffffff, true, brickTex);
+  addWall(houseGroup, 0.3, 4*s, 6*s, -3*s, 2*s, 0, 0, 0xffffff, true, brickTex);
+  addWall(houseGroup, 0.3, 4*s, 6*s, 3*s, 2*s, 0, 0, 0xffffff, true, brickTex);
+  
+  // 四坡顶
+  buildPyramidRoof(s, 7*s, 3*s, c.roof);
+  
   // 烟囱
-  var chimGeo = new THREE.BoxGeometry(0.6*s, 2.0*s, 0.6*s);
-  var chim = new THREE.Mesh(chimGeo, new THREE.MeshPhongMaterial({ color: shadeColor(c.roof, -20) }));
-  chim.position.set(1.5*s, 5.5*s, 1.0*s);
+  var chim = new THREE.Mesh(new THREE.BoxGeometry(0.5*s, 1.8*s, 0.5*s), new THREE.MeshPhongMaterial({color: shadeColor(c.roof, -20)}));
+  chim.position.set(1.5*s, 5.5*s, 1*s);
   chim.castShadow = true;
   houseGroup.add(chim);
-
-  // 烟囱顶
-  var chimTop = new THREE.Mesh(new THREE.BoxGeometry(0.8*s, 0.2*s, 0.8*s), new THREE.MeshPhongMaterial({ color: shadeColor(c.roof, -30) }));
-  chimTop.position.set(1.5*s, 6.5*s, 1.0*s);
-  houseGroup.add(chimTop);
-
-  // 门廊台阶
-  var stepsData = [[0, 0.1, -3.8*s], [0, 0.3, -4.2*s], [0, 0.5, -4.6*s]];
-  stepsData.forEach(function(sd, idx) {
-    var sw = (1.8 - idx*0.2)*s;
-    var step = new THREE.Mesh(new THREE.BoxGeometry(sw, 0.22, 0.5), new THREE.MeshPhongMaterial({ color: c.base }));
-    step.position.set(sd[0], sd[1], sd[2]);
-    step.castShadow = true;
-    step.receiveShadow = true;
-    houseGroup.add(step);
-  });
-
-  // 门廊柱子
-  [-0.8*s, 0.8*s].forEach(function(px) {
-    var pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.18*s, 0.2*s, 1.5*s, 8), new THREE.MeshPhongMaterial({ color: shadeColor(c.wall, 20) }));
-    pillar.position.set(px, 1.15*s, -3.5*s);
+  
+  // 门廊
+  [-0.9*s, 0.9*s].forEach(function(px) {
+    var pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.15*s, 0.18*s, 1.3*s, 8), new THREE.MeshPhongMaterial({color: c.wall}));
+    pillar.position.set(px, 1.0*s, -3.6*s);
     pillar.castShadow = true;
     houseGroup.add(pillar);
   });
+  
+  // 门廊顶
+  var porchRoof = new THREE.Mesh(new THREE.BoxGeometry(2.2*s, 0.15, 0.8), new THREE.MeshPhongMaterial({color: c.roofS}));
+  porchRoof.position.set(0, 1.7*s, -3.5*s);
+  houseGroup.add(porchRoof);
+  
+  // 门
+  var door = new THREE.Mesh(new THREE.BoxGeometry(1.1*s, 2.2*s, 0.2), new THREE.MeshPhongMaterial({color: c.door}));
+  door.position.set(0, 1.2*s, -3.1*s);
+  houseGroup.add(door);
+  
+  // 窗户
+  var winPos = [[-1.5*s, 2.3*s, -3.05*s, 0], [1.5*s, 2.3*s, -3.05*s, 0], [-3.05*s, 2.3*s, -1.5*s, Math.PI/2], [3.05*s, 2.3*s, -1.5*s, Math.PI/2]];
+  winPos.forEach(function(wp) {
+    var win = new THREE.Mesh(new THREE.BoxGeometry(0.9*s, 0.9*s, 0.08), new THREE.MeshPhongMaterial({color: c.win, transparent: true, opacity: 0.85}));
+    win.position.set(wp[0], wp[1], wp[2]);
+    win.rotation.y = wp[3];
+    houseGroup.add(win);
+    var frame = new THREE.Mesh(new THREE.BoxGeometry(1.0*s, 1.0*s, 0.06), new THREE.MeshPhongMaterial({color: c.wallS}));
+    frame.position.set(wp[0], wp[1], wp[2]);
+    frame.rotation.y = wp[3];
+    houseGroup.add(frame);
+  });
+}
 
-  // 夜晚窗户发光
-  updateWindowGlow();
+// ===== 3. 欧式别墅：带塔楼 =====
+function buildEuropeanVilla() {
+  var c = HOUSE_LEVELS[2].c;
+  var s = HOUSE_LEVELS[2].scale;
+  
+  // 地基
+  var base = new THREE.Mesh(new THREE.BoxGeometry(8*s, 0.5, 8*s), new THREE.MeshPhongMaterial({color: c.base}));
+  base.position.y = 0.25;
+  base.receiveShadow = true;
+  houseGroup.add(base);
+  
+  // 主楼
+  addWall(houseGroup, 5*s, 4.5*s, 0.3, 0, 2.5*s, -2*s, 0, c.wall, true, null);
+  addWall(houseGroup, 5*s, 4.5*s, 0.3, 0, 2.5*s, 2*s, 0, c.wallS, true, null);
+  addWall(houseGroup, 0.3, 4.5*s, 4*s, -2.5*s, 2.5*s, 0, 0, c.wallS, true, null);
+  addWall(houseGroup, 0.3, 4.5*s, 4*s, 2.5*s, 2.5*s, 0, 0, c.wall, true, null);
+  
+  // 尖塔楼（左前角）
+  var tower = new THREE.Group();
+  // 塔身
+  var towerBody = new THREE.Mesh(new THREE.CylinderGeometry(0.8*s, 1.0*s, 5*s, 12), new THREE.MeshPhongMaterial({color: c.wall}));
+  towerBody.position.y = 2.5*s;
+  towerBody.castShadow = true;
+  tower.add(towerBody);
+  // 塔顶（圆锥）
+  var towerRoof = new THREE.Mesh(new THREE.ConeGeometry(1.2*s, 2.5*s, 12), new THREE.MeshPhongMaterial({color: c.roof}));
+  towerRoof.position.y = 6.25*s;
+  towerRoof.castShadow = true;
+  tower.add(towerRoof);
+  // 塔顶球
+  var ball = new THREE.Mesh(new THREE.SphereGeometry(0.15*s, 8, 6), new THREE.MeshPhongMaterial({color: c.gold || '#ffd700'}));
+  ball.position.y = 7.6*s;
+  tower.add(ball);
+  tower.position.set(-3*s, 0, -3*s);
+  houseGroup.add(tower);
+  
+  // 主楼四坡顶
+  buildPyramidRoof(s, 6*s, 2.5*s, c.roof);
+  
+  // 阳台（右侧）
+  var balcony = new THREE.Group();
+  var balconyFloor = new THREE.Mesh(new THREE.BoxGeometry(2*s, 0.15, 1.2*s), new THREE.MeshPhongMaterial({color: c.base}));
+  balconyFloor.position.set(2.8*s, 2.8*s, 0);
+  balcony.add(balconyFloor);
+  // 栏杆
+  [-0.8*s, 0.8*s].forEach(function(rz) {
+    var rail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.6*s, 1.2*s), new THREE.MeshPhongMaterial({color: c.wall}));
+    rail.position.set(2.8*s, 3.2*s, rz);
+    balcony.add(rail);
+  });
+  houseGroup.add(balcony);
+  
+  // 拱形门
+  var doorFrame = new THREE.Mesh(new THREE.BoxGeometry(1.4*s, 2.6*s, 0.2), new THREE.MeshPhongMaterial({color: c.door}));
+  doorFrame.position.set(0, 1.4*s, -2.1*s);
+  houseGroup.add(doorFrame);
+  // 门拱
+  var arch = new THREE.Mesh(new THREE.TorusGeometry(0.6*s, 0.12, 8, 12, Math.PI), new THREE.MeshPhongMaterial({color: c.door}));
+  arch.rotation.z = Math.PI;
+  arch.position.set(0, 2.65*s, -2.05*s);
+  houseGroup.add(arch);
+  
+  // 窗户（拱形）
+  var winPos2 = [[-1.5*s, 2.8*s, -2.05*s], [1.5*s, 2.8*s, -2.05*s]];
+  winPos2.forEach(function(wp) {
+    var win = new THREE.Mesh(new THREE.BoxGeometry(0.7*s, 1.2*s, 0.08), new THREE.MeshPhongMaterial({color: c.win, transparent: true, opacity: 0.85}));
+    win.position.set(wp[0], wp[1], wp[2]);
+    houseGroup.add(win);
+    // 拱形窗顶
+    var winArch = new THREE.Mesh(new THREE.TorusGeometry(0.35*s, 0.06, 8, 12, Math.PI), new THREE.MeshPhongMaterial({color: c.wallS}));
+    winArch.rotation.z = Math.PI;
+    winArch.position.set(wp[0], wp[1] + 0.6*s, wp[2]);
+    houseGroup.add(winArch);
+  });
+}
+
+// ===== 4. 现代豪宅：平顶+大玻璃 =====
+function buildModernMansion() {
+  var c = HOUSE_LEVELS[3].c;
+  var s = HOUSE_LEVELS[3].scale;
+  
+  // 地基
+  var base = new THREE.Mesh(new THREE.BoxGeometry(10*s, 0.5, 10*s), new THREE.MeshPhongMaterial({color: c.base}));
+  base.position.y = 0.25;
+  base.receiveShadow = true;
+  houseGroup.add(base);
+  
+  // 主体 - 层叠几何
+  // 下层
+  var lower = new THREE.Mesh(new THREE.BoxGeometry(8*s, 3*s, 7*s), new THREE.MeshPhongMaterial({color: c.wall}));
+  lower.position.set(0, 1.8*s, 0);
+  lower.castShadow = true;
+  houseGroup.add(lower);
+  
+  // 上层（偏移）
+  var upper = new THREE.Mesh(new THREE.BoxGeometry(6*s, 2.5*s, 5*s), new THREE.MeshPhongMaterial({color: c.wallS}));
+  upper.position.set(-1*s, 4.55*s, 0.5*s);
+  upper.castShadow = true;
+  houseGroup.add(upper);
+  
+  // 平顶
+  var flatRoof = new THREE.Mesh(new THREE.BoxGeometry(8.5*s, 0.2, 7.5*s), new THREE.MeshPhongMaterial({color: c.roof}));
+  flatRoof.position.set(0, 3.4*s, 0);
+  houseGroup.add(flatRoof);
+  
+  // 大落地窗（前墙）
+  var glassMat = new THREE.MeshPhongMaterial({color: c.win, transparent: true, opacity: 0.75});
+  var bigWin = new THREE.Mesh(new THREE.BoxGeometry(3*s, 2.2*s, 0.1), glassMat);
+  bigWin.position.set(0, 1.6*s, -3.55*s);
+  houseGroup.add(bigWin);
+  
+  // 窗框分割
+  var hLine = new THREE.Mesh(new THREE.BoxGeometry(3*s, 0.08, 0.15), new THREE.MeshPhongMaterial({color: c.wallS}));
+  hLine.position.set(0, 1.6*s, -3.5*s);
+  houseGroup.add(hLine);
+  var vLine = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.2*s, 0.15), new THREE.MeshPhongMaterial({color: c.wallS}));
+  vLine.position.set(0, 1.6*s, -3.5*s);
+  houseGroup.add(vLine);
+  
+  // 现代门
+  var door = new THREE.Mesh(new THREE.BoxGeometry(1.5*s, 2.4*s, 0.15), new THREE.MeshPhongMaterial({color: c.door}));
+  door.position.set(2*s, 1.3*s, -3.55*s);
+  houseGroup.add(door);
+  
+  // 露台（上层顶部）
+  var terrace = new THREE.Mesh(new THREE.BoxGeometry(6.5*s, 0.15, 5.5*s), new THREE.MeshPhongMaterial({color: c.base}));
+  terrace.position.set(-1*s, 5.9*s, 0.5*s);
+  houseGroup.add(terrace);
+  
+  // 露台栏杆（玻璃）
+  var railGlass = new THREE.Mesh(new THREE.BoxGeometry(6.5*s, 0.8*s, 0.05), glassMat);
+  railGlass.position.set(-1*s, 6.35*s, -2.2*s);
+  houseGroup.add(railGlass);
+}
+
+// ===== 5. 梦幻城堡：双塔+城墙 =====
+function buildCastle() {
+  var c = HOUSE_LEVELS[4].c;
+  var s = HOUSE_LEVELS[4].scale;
+  
+  // 地基
+  var base = new THREE.Mesh(new THREE.BoxGeometry(12*s, 0.6, 12*s), new THREE.MeshPhongMaterial({color: c.base}));
+  base.position.y = 0.3;
+  base.receiveShadow = true;
+  houseGroup.add(base);
+  
+  // 主楼
+  var main = new THREE.Mesh(new THREE.BoxGeometry(6*s, 5*s, 6*s), new THREE.MeshPhongMaterial({color: c.wall}));
+  main.position.set(0, 2.8*s, 0);
+  main.castShadow = true;
+  houseGroup.add(main);
+  
+  // 双塔（左右）
+  [-4*s, 4*s].forEach(function(tx) {
+    var tower = new THREE.Group();
+    // 塔身
+    var body = new THREE.Mesh(new THREE.CylinderGeometry(1.2*s, 1.4*s, 7*s, 16), new THREE.MeshPhongMaterial({color: c.wallS}));
+    body.position.y = 3.5*s;
+    body.castShadow = true;
+    tower.add(body);
+    // 塔顶（圆锥）
+    var roof = new THREE.Mesh(new THREE.ConeGeometry(1.8*s, 3*s, 16), new THREE.MeshPhongMaterial({color: c.roof}));
+    roof.position.y = 8*s;
+    roof.castShadow = true;
+    tower.add(roof);
+    // 城垛
+    for (var i = 0; i < 8; i++) {
+      var battlement = new THREE.Mesh(new THREE.BoxGeometry(0.5*s, 0.6*s, 0.3*s), new THREE.MeshPhongMaterial({color: c.wallS}));
+      var angle = (i / 8) * Math.PI * 2;
+      battlement.position.set(Math.cos(angle) * 1.1*s, 7.2*s, Math.sin(angle) * 1.1*s);
+      battlement.rotation.y = -angle;
+      tower.add(battlement);
+    }
+    tower.position.set(tx, 0, 0);
+    houseGroup.add(tower);
+  });
+  
+  // 城墙（连接塔与主楼）
+  [-3*s, 3*s].forEach(function(wz) {
+    var wall = new THREE.Mesh(new THREE.BoxGeometry(8*s, 3.5*s, 0.5*s), new THREE.MeshPhongMaterial({color: c.wall}));
+    wall.position.set(0, 2.0*s, wz);
+    wall.castShadow = true;
+    houseGroup.add(wall);
+    // 城垛
+    for (var j = -3; j <= 3; j++) {
+      if (j === 0) continue;
+      var batt = new THREE.Mesh(new THREE.BoxGeometry(0.6*s, 0.8*s, 0.3*s), new THREE.MeshPhongMaterial({color: c.wallS}));
+      batt.position.set(j*1.1*s, 3.7*s, wz);
+      houseGroup.add(batt);
+    }
+  });
+  
+  // 主楼塔顶
+  var mainRoof = new THREE.Mesh(new THREE.ConeGeometry(3*s, 3.5*s, 8), new THREE.MeshPhongMaterial({color: c.roofS}));
+  mainRoof.position.set(0, 7.3*s, 0);
+  mainRoof.castShadow = true;
+  houseGroup.add(mainRoof);
+  
+  // 旗帜
+  var flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.05*s, 0.05*s, 2*s, 8), new THREE.MeshPhongMaterial({color: '#8b4513'}));
+  flagPole.position.set(0, 9.3*s, 0);
+  houseGroup.add(flagPole);
+  var flag = new THREE.Mesh(new THREE.BoxGeometry(0.8*s, 0.5*s, 0.02), new THREE.MeshPhongMaterial({color: '#ff0000'}));
+  flag.position.set(0.4*s, 10*s, 0);
+  houseGroup.add(flag);
+  
+  // 拱形大门
+  var gateFrame = new THREE.Mesh(new THREE.BoxGeometry(2.2*s, 3.5*s, 0.3*s), new THREE.MeshPhongMaterial({color: c.door}));
+  gateFrame.position.set(0, 2.0*s, -3.2*s);
+  houseGroup.add(gateFrame);
+  var gateArch = new THREE.Mesh(new THREE.TorusGeometry(1.0*s, 0.2, 8, 16, Math.PI), new THREE.MeshPhongMaterial({color: c.door}));
+  gateArch.rotation.z = Math.PI;
+  gateArch.position.set(0, 3.8*s, -3.1*s);
+  houseGroup.add(gateArch);
+  
+  // 窗户
+  [[-1.5*s, 3.5*s, -3.1*s], [1.5*s, 3.5*s, -3.1*s]].forEach(function(wp) {
+    var win = new THREE.Mesh(new THREE.BoxGeometry(0.8*s, 1.2*s, 0.1), new THREE.MeshPhongMaterial({color: c.win, transparent: true, opacity: 0.85}));
+    win.position.set(wp[0], wp[1], wp[2]);
+    houseGroup.add(win);
+    // 尖拱
+    var pt = new THREE.Mesh(new THREE.ConeGeometry(0.4*s, 0.6*s, 4), new THREE.MeshPhongMaterial({color: c.wallS}));
+    pt.position.set(wp[0], wp[1] + 0.9*s, wp[2]);
+    houseGroup.add(pt);
+  });
+}
+
+// ===== 辅助：四坡顶 =====
+function buildPyramidRoof(s, w, h, color) {
+  var roofGeo = new THREE.ConeGeometry(w/2 * s, h * s, 4);
+  var roof = new THREE.Mesh(roofGeo, new THREE.MeshPhongMaterial({color: color}));
+  roof.position.set(0, (4 + h/2) * s, 0);
+  roof.rotation.y = Math.PI/4;
+  roof.castShadow = true;
+  houseGroup.add(roof);
 }
 
 function addWall(group, w, h, d, x, y, z, ry, color, shadow, tex) {
