@@ -128,11 +128,15 @@ function init() {
   renderer.domElement.addEventListener('pointerdown', onPointerDown, {passive:false});
   renderer.domElement.addEventListener('pointermove', onPointerMove, {passive:false});
   renderer.domElement.addEventListener('pointerup',   onPointerUp);
-  renderer.domElement.addEventListener('wheel',       onWheel, {passive:false});
+  renderer.domElement.addEventListener('wheel',      onWheel, {passive:false});
   renderer.domElement.addEventListener('touchstart',  onTouchStart, {passive:false});
   renderer.domElement.addEventListener('touchmove',   onTouchMove, {passive:false});
+  renderer.domElement.addEventListener('touchend',   onPointerUp);
+  renderer.domElement.addEventListener('touchcancel', onPointerUp);
   renderer.domElement.addEventListener('contextmenu', function(e){ e.preventDefault(); });
   window.addEventListener('resize', onResize);
+  document.body.style.overflow = 'hidden';
+  document.body.style.overscrollBehavior = 'none';
 
   setupUI();
   animate();
@@ -796,38 +800,90 @@ function shadeColor(hex, amt) {
 }
 
 // ===== 输入 =====
+var touchMode = 0; // 0=无, 1=单指旋转, 2=双指缩放
+var touchStartCenter = null;
+var touchStartTheta = 0;
+var touchStartPhi = 0;
+var touchMoved = false;
+
 function onPointerDown(e) {
   e.preventDefault();
   isDragging = false;
-  lastPointer = { x: e.clientX, y: e.clientY, button: e.button };
+  touchMoved = false;
+  if (e.touches) {
+    if (e.touches.length === 1) {
+      touchMode = 1;
+      touchStartCenter = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      touchStartTheta = camTheta;
+      touchStartPhi = camPhi;
+    } else if (e.touches.length === 2) {
+      touchMode = 2;
+      pinchDist0 = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  } else {
+    lastPointer = { x: e.clientX, y: e.clientY, button: e.button };
+  }
 }
 
 function onPointerMove(e) {
   var rect = renderer.domElement.getBoundingClientRect();
-  mouse.x = ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
-
-  if (lastPointer) {
-    var dx = e.clientX - lastPointer.x;
-    var dy = e.clientY - lastPointer.y;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-      isDragging = true;
-      if (lastPointer.button === 2) {
-        // 右键：平移
-        var panSpeed = 0.03;
-        var right = new THREE.Vector3();
-        var up = new THREE.Vector3();
-        camera.getWorldDirection(up);
-        right.crossVectors(up, camera.up).normalize();
-        camTarget.addScaledVector(right, -dx * panSpeed);
-        camTarget.y += dy * panSpeed;
-      } else {
-        // 左键：旋转
-        camTheta -= dx * 0.008;
-        camPhi = Math.max(0.15, Math.min(1.45, camPhi + dy * 0.008));
+  var cx, cy;
+  if (e.touches) {
+    if (e.touches.length === 1 && touchMode === 1) {
+      cx = e.touches[0].clientX;
+      cy = e.touches[0].clientY;
+      var dx = cx - touchStartCenter.x;
+      var dy = cy - touchStartCenter.y;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        touchMoved = true;
+        camTheta = touchStartTheta - dx * 0.006;
+        camPhi = Math.max(0.15, Math.min(1.45, touchStartPhi + dy * 0.006));
+        updateCamera();
       }
+      mouse.x = ((cx - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((cy - rect.top) / rect.height) * 2 + 1;
+    } else if (e.touches.length === 2 && touchMode === 2) {
+      var d = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      camDist = Math.max(8, Math.min(50, camDist - (d - pinchDist0) * 0.06));
+      pinchDist0 = d;
       updateCamera();
-      lastPointer = { x: e.clientX, y: e.clientY, button: lastPointer.button };
+      // 计算双指中心用于高亮
+      cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      mouse.x = ((cx - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((cy - rect.top) / rect.height) * 2 + 1;
+    }
+  } else {
+    cx = e.clientX;
+    cy = e.clientY;
+    mouse.x = ((cx - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((cy - rect.top) / rect.height) * 2 + 1;
+    if (lastPointer) {
+      var dx = cx - lastPointer.x;
+      var dy = cy - lastPointer.y;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        isDragging = true;
+        if (lastPointer.button === 2) {
+          var panSpeed = 0.03;
+          var right = new THREE.Vector3();
+          var fwd = new THREE.Vector3();
+          camera.getWorldDirection(fwd);
+          right.crossVectors(fwd, camera.up).normalize();
+          camTarget.addScaledVector(right, -dx * panSpeed);
+          camTarget.y += dy * panSpeed;
+        } else {
+          camTheta -= dx * 0.008;
+          camPhi = Math.max(0.15, Math.min(1.45, camPhi + dy * 0.008));
+        }
+        updateCamera();
+        lastPointer = { x: cx, y: cy, button: lastPointer.button };
+      }
     }
   }
 
@@ -848,9 +904,26 @@ function onPointerMove(e) {
 }
 
 function onPointerUp(e) {
-  if (isDragging || !lastPointer) { lastPointer = null; return; }
-  lastPointer = null;
+  var wasDrag = isDragging || touchMoved;
+  if (e.touches) {
+    if (e.touches.length === 0) {
+      if (!wasDrag && touchMode === 1) {
+        handlePointerTap();
+      }
+      touchMode = 0;
+      touchStartCenter = null;
+    }
+  } else {
+    lastPointer = null;
+    if (!wasDrag) {
+      handlePointerTap();
+    }
+  }
+  isDragging = false;
+  touchMoved = false;
+}
 
+function handlePointerTap() {
   raycaster.setFromCamera(mouse, camera);
   var hits = raycaster.intersectObjects(yardGroup.children, false);
   for (var i = 0; i < hits.length; i++) {
@@ -869,24 +942,13 @@ function onWheel(e) {
 }
 
 function onTouchStart(e) {
-  if (e.touches.length === 2) {
-    pinchDist0 = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-  }
+  e.preventDefault();
+  onPointerDown(e);
 }
 
 function onTouchMove(e) {
-  if (e.touches.length === 2) {
-    var d = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-    camDist = Math.max(8, Math.min(50, camDist - (d - pinchDist0) * 0.05));
-    pinchDist0 = d;
-    updateCamera();
-  }
+  e.preventDefault();
+  onPointerMove(e);
 }
 
 function onResize() {
