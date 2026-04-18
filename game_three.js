@@ -4,30 +4,30 @@
 // ============================================================
 
 // ===== 商店物品 =====
-var SHOP_ITEMS = [
-  { id:'sakura',  name:'樱花树',  price:30,  kind:'tree',   growth:12, c:{trunk:'#6d4c41',c1:'#f48fb1',c2:'#f06292',c3:'#ec407a'} },
-  { id:'pine',    name:'松树',    price:80,  kind:'tree',   growth:20, c:{trunk:'#5d4037',c1:'#1b5e20',c2:'#2e7d32',c3:'#388e3c'} },
-  { id:'maple',   name:'枫树',    price:25,  kind:'tree',   growth:12, c:{trunk:'#5d4037',c1:'#ff7043',c2:'#ff5722',c3:'#f4511e'} },
-  { id:'willow',  name:'垂柳',    price:60,  kind:'tree',   growth:15, c:{trunk:'#5d4037',c1:'#a5d6a7',c2:'#81c784',c3:'#66bb6a'} },
-  { id:'bush',    name:'灌木',    price:20,  kind:'tree',   growth:8,  c:{trunk:'#4e342e',c1:'#388e3c',c2:'#43a047',c3:'#4caf50'} },
-  { id:'rose',    name:'玫瑰',    price:20,  kind:'flower', growth:8,  c:{stem:'#2e7d32',p1:'#e91e63',center:'#ffd54f'} },
-  { id:'sunf',    name:'向日葵',  price:15,  kind:'flower', growth:6,  c:{stem:'#388e3c',p1:'#ffc107',center:'#5d4037'} },
-  { id:'tulip',   name:'郁金香',  price:15,  kind:'flower', growth:6,  c:{stem:'#43a047',p1:'#e91e63',center:'#fff176'} },
-  { id:'lavnd',   name:'薰衣草',  price:25,  kind:'flower', growth:8,  c:{stem:'#388e3c',p1:'#9c27b0',center:'#ce93d8'} },
-  { id:'hydra',   name:'绣球',    price:35,  kind:'flower', growth:10, c:{stem:'#2e7d32',p1:'#2196f3',center:'#fff9c4'} },
-  { id:'pond',    name:'池塘',    price:150, kind:'water',  growth:0,  c:{water:'#4fc3f7',edge:'#78909c'} },
-  { id:'fount',   name:'喷泉',    price:200, kind:'water',  growth:0,  c:{water:'#4fc3f7',stone:'#90a4ae'} },
-  { id:'rock',    name:'石头',    price:10,  kind:'deco',   growth:0,  c:{light:'#bdbdbd',dark:'#757575'} },
-  { id:'lamp',    name:'路灯',    price:50,  kind:'deco',   growth:0,  c:{pole:'#546e7a',glow:'#fff176'} },
-  { id:'bench',   name:'长椅',    price:40,  kind:'deco',   growth:0,  c:{wood:'#8d6e63',metal:'#455a64'} },
-  { id:'fence',   name:'栅栏',    price:15,  kind:'deco',   growth:0,  c:{wood:'#a1887f',dark:'#8d6e63'} },
-  { id:'cat',     name:'猫咪',    price:120, kind:'deco',   growth:0,  c:{body:'#ff9800',eye:'#1a1a1a'} },
-  { id:'bunny',   name:'兔子',    price:90,  kind:'deco',   growth:0,  c:{body:'#fafafa',pink:'#f8bbd9',eye:'#1a1a1a'} },
-  { id:'windmill',name:'风车',    price:160, kind:'deco',   growth:0,  c:{wood:'#8d6e63',blade:'#fafafa',roof:'#bcaaa4'} },
-  { id:'angelf',  name:'天使像',  price:180, kind:'deco',   growth:0,  c:{stone:'#eceff1',gold:'#ffd700'} },
-  { id:'hedge',   name:'树篱',    price:35,  kind:'deco',   growth:0,  c:{c1:'#388e3c',light:'#4caf50'} },
-  { id:'step',    name:'石板路',  price:5,   kind:'ground', growth:0,  c:{top:'#bdbdbd',side:'#9e9e9e'} },
-  { id:'grass',   name:'草坪',    price:10,  kind:'ground', growth:0,  c:{top:'#4caf50',side:'#388e3c'} },
+var DECO_ITEMS = [
+  { id:'sakura',  name:'樱花树',  kind:'tree',   growth:12, c:{trunk:'#6d4c41',c1:'#f48fb1',c2:'#f06292',c3:'#ec407a'} },
+  { id:'pine',    name:'松树',    kind:'tree',   growth:20, c:{trunk:'#5d4037',c1:'#1b5e20',c2:'#2e7d32',c3:'#388e3c'} },
+  { id:'maple',   name:'枫树',    kind:'tree',   growth:12, c:{trunk:'#5d4037',c1:'#ff7043',c2:'#ff5722',c3:'#f4511e'} },
+  { id:'willow',  name:'垂柳',    kind:'tree',   growth:15, c:{trunk:'#5d4037',c1:'#a5d6a7',c2:'#81c784',c3:'#66bb6a'} },
+  { id:'bush',    name:'灌木',    kind:'tree',   growth:8,  c:{trunk:'#4e342e',c1:'#388e3c',c2:'#43a047',c3:'#4caf50'} },
+  { id:'rose',    name:'玫瑰',    kind:'flower', growth:8,  c:{stem:'#2e7d32',p1:'#e91e63',center:'#ffd54f'} },
+  { id:'sunf',    name:'向日葵',  kind:'flower', growth:6,  c:{stem:'#388e3c',p1:'#ffc107',center:'#5d4037'} },
+  { id:'tulip',   name:'郁金香',  kind:'flower', growth:6,  c:{stem:'#43a047',p1:'#e91e63',center:'#fff176'} },
+  { id:'lavnd',   name:'薰衣草',  kind:'flower', growth:8,  c:{stem:'#388e3c',p1:'#9c27b0',center:'#ce93d8'} },
+  { id:'hydra',   name:'绣球',    kind:'flower', growth:10, c:{stem:'#2e7d32',p1:'#2196f3',center:'#fff9c4'} },
+  { id:'pond',    name:'池塘',    kind:'water',  growth:0,  c:{water:'#4fc3f7',edge:'#78909c'} },
+  { id:'fount',   name:'喷泉',    kind:'water',  growth:0,  c:{water:'#4fc3f7',stone:'#90a4ae'} },
+  { id:'rock',    name:'石头',    kind:'deco',   growth:0,  c:{light:'#bdbdbd',dark:'#757575'} },
+  { id:'lamp',    name:'路灯',    kind:'deco',   growth:0,  c:{pole:'#546e7a',glow:'#fff176'} },
+  { id:'bench',    name:'长椅',   kind:'deco',   growth:0,  c:{wood:'#8d6e63',metal:'#455a64'} },
+  { id:'fence',    name:'栅栏',   kind:'deco',   growth:0,  c:{wood:'#a1887f',dark:'#8d6e63'} },
+  { id:'cat',     name:'猫咪',    kind:'deco',   growth:0,  c:{body:'#ff9800',eye:'#1a1a1a'} },
+  { id:'bunny',   name:'兔子',    kind:'deco',   growth:0,  c:{body:'#fafafa',pink:'#f8bbd9',eye:'#1a1a1a'} },
+  { id:'windmill',name:'风车',    kind:'deco',   growth:0,  c:{wood:'#8d6e63',blade:'#fafafa',roof:'#bcaaa4'} },
+  { id:'angelf',  name:'天使像',  kind:'deco',   growth:0,  c:{stone:'#eceff1',gold:'#ffd700'} },
+  { id:'hedge',   name:'树篱',    kind:'deco',   growth:0,  c:{c1:'#388e3c',light:'#4caf50'} },
+  { id:'step',    name:'石板路',  kind:'ground', growth:0,  c:{top:'#bdbdbd',side:'#9e9e9e'} },
+  { id:'grass',   name:'草坪',    kind:'ground', growth:0,  c:{top:'#4caf50',side:'#388e3c'} },
 ];
 
 var HOUSE_LEVELS = [
@@ -60,9 +60,7 @@ var YARD_SLOTS = (function() {
 
 // ===== 游戏状态 =====
 var gameState = {
-  money: 9999,
   houseLevel: 1,
-  selectedItem: null,
   timeOfDay: 0.42,
   _fireflyActive: false,
 };
@@ -74,7 +72,6 @@ var raycaster, mouse;
 var yardGroup, houseGroup, groundMesh;
 var highlightMesh;
 var sakuParticles = [], fireflies = [];
-var shopOpen = false;
 
 // 相机轨道控制
 var camTheta = 0.6;   // 水平角
@@ -83,6 +80,15 @@ var camDist  = 28;    // 距离
 var camTarget = new THREE.Vector3(0, 0, 0);
 var isDragging = false, lastPointer = null;
 var pinchDist0 = 0;
+
+// 升级动画状态
+var upgradeAnim = {
+  active: false,
+  phase: 'none',
+  timer: 0,
+  particles: [],
+  ring: null,
+};
 
 // ===== 程序贴图 =====
 function makeCanvas(w, h, drawFn) {
@@ -1115,23 +1121,18 @@ function handleSlotClick(slotId) {
   }
   if (!slot) return;
 
-  if (gameState.selectedItem) {
-    if (slot.item) { showToast('此处已有物品'); return; }
-    if (gameState.money < gameState.selectedItem.price) { showToast('💰 金币不足'); return; }
-    gameState.money -= gameState.selectedItem.price;
-    slot.item = gameState.selectedItem;
+  if (slot.item) {
+    var name = slot.item.name;
+    slot.item = null;
+    slot.plantedAt = 0;
+    buildYardSlots();
+    showToast('🗑️ 已移除 ' + name);
+  } else {
+    var item = DECO_ITEMS[Math.floor(Math.random() * DECO_ITEMS.length)];
+    slot.item = item;
     slot.plantedAt = Date.now();
     buildYardSlots();
-    updateMoneyDisplay();
-    showToast('🌱 放置成功！');
-    gameState.selectedItem = null;
-    updateShopUI();
-  } else {
-    if (slot.item) {
-      showToast(slot.item.name + ' ⭐');
-    } else {
-      showToast('空地 · 选择物品放置');
-    }
+    showToast('🌱 放置了 ' + item.name);
   }
 }
 
@@ -1151,53 +1152,132 @@ function cycleTime() {
 
 // ===== 房屋升级 =====
 function upgradeHouse() {
+  if (upgradeAnim.active) return;
   if (gameState.houseLevel >= HOUSE_LEVELS.length) { showToast('🏠 已是最高等级！'); return; }
-  var cost = gameState.houseLevel * 300;
-  if (gameState.money < cost) { showToast('💰 需要 ' + cost + ' 金币'); return; }
-  gameState.money -= cost;
-  gameState.houseLevel++;
-  buildHouse();
-  updateMoneyDisplay();
-  showToast('🏠 ' + HOUSE_LEVELS[gameState.houseLevel-1].name + ' 解锁！');
+  startUpgradeAnimation();
 }
 
-// ===== 商店 =====
-function toggleShop() {
-  shopOpen = !shopOpen;
-  document.getElementById('shop').style.display = shopOpen ? 'block' : 'none';
-  document.getElementById('shopBtn').textContent = shopOpen ? '✖ 关闭' : '🛒 商店';
+// ===== 升级动画 =====
+function startUpgradeAnimation() {
+  upgradeAnim.active = true;
+  upgradeAnim.phase = 'shrink';
+  upgradeAnim.timer = 0;
+  var btn = document.querySelector('.btn-house');
+  if (btn) btn.disabled = true;
 }
 
-function updateShopUI() {
-  var container = document.getElementById('shop');
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < SHOP_ITEMS.length; i++) {
-    var item = SHOP_ITEMS[i];
-    var div = document.createElement('div');
-    var sel = gameState.selectedItem && gameState.selectedItem.id === item.id;
-    div.className = 'shop-item' + (sel ? ' selected' : '');
-    var col = '#888';
-    if (item.c) col = item.c.c1 || item.c.p1 || item.c.water || item.c.light || '#888';
-    div.innerHTML =
-      '<div class="icon" style="color:'+col+'">●</div>' +
-      '<div class="name">'+item.name+'</div>' +
-      '<div class="price">'+item.price+'💰</div>';
-    div.onclick = (function(it) {
-      return function() {
-        if (gameState.money < it.price) { showToast('💰 金币不足'); return; }
-        gameState.selectedItem = it;
-        updateShopUI();
-        showToast('✓ 已选: ' + it.name);
-      };
-    })(item);
-    container.appendChild(div);
+function updateUpgradeAnim(dt) {
+  if (!upgradeAnim.active) return;
+  upgradeAnim.timer += dt;
+
+  if (upgradeAnim.phase === 'shrink') {
+    var p = Math.min(1, upgradeAnim.timer / 1.0);
+    var s = Math.max(0.01, 1 - p);
+    houseGroup.scale.set(s, s, s);
+    houseGroup.rotation.y = p * Math.PI * 2;
+    if (p >= 1) {
+      upgradeAnim.phase = 'particles';
+      upgradeAnim.timer = 0;
+      houseGroup.visible = false;
+      houseGroup.rotation.y = 0;
+      spawnUpgradeParticles();
+    }
+  } else if (upgradeAnim.phase === 'particles') {
+    updateParticles(dt);
+    if (upgradeAnim.timer > 0.8) {
+      upgradeAnim.phase = 'ring';
+      upgradeAnim.timer = 0;
+      cleanParticles();
+      spawnFlashRing();
+    }
+  } else if (upgradeAnim.phase === 'ring') {
+    if (upgradeAnim.ring) {
+      var rp = upgradeAnim.timer / 0.5;
+      var rs = 1 + rp * 8;
+      upgradeAnim.ring.scale.set(rs, rs, rs);
+      upgradeAnim.ring.material.opacity = Math.max(0, 1 - rp);
+    }
+    if (upgradeAnim.timer > 0.5) {
+      upgradeAnim.phase = 'grow';
+      upgradeAnim.timer = 0;
+      cleanRing();
+      gameState.houseLevel++;
+      buildHouse();
+      houseGroup.scale.set(0.01, 0.01, 0.01);
+      houseGroup.visible = true;
+    }
+  } else if (upgradeAnim.phase === 'grow') {
+    var p2 = Math.min(1, upgradeAnim.timer / 0.8);
+    var s2;
+    if (p2 < 0.6) {
+      s2 = (p2 / 0.6) * 1.15;
+    } else {
+      s2 = 1.15 - ((p2 - 0.6) / 0.4) * 0.15;
+    }
+    houseGroup.scale.set(s2, s2, s2);
+    if (p2 >= 1) {
+      houseGroup.scale.set(1, 1, 1);
+      upgradeAnim.active = false;
+      upgradeAnim.phase = 'none';
+      var btn = document.querySelector('.btn-house');
+      if (btn) btn.disabled = false;
+      showToast('🏠 ' + HOUSE_LEVELS[gameState.houseLevel-1].name + ' 解锁！');
+      var hi = document.getElementById('houseInfo');
+      if (hi) hi.textContent = HOUSE_LEVELS[gameState.houseLevel-1].name;
+    }
   }
 }
 
-function updateMoneyDisplay() {
-  var el = document.getElementById('moneyDisplay');
-  if (el) el.textContent = gameState.money;
+function spawnUpgradeParticles() {
+  for (var i = 0; i < 40; i++) {
+    var hue = Math.random() * 0.15 + 0.08;
+    var color = new THREE.Color().setHSL(hue, 1, 0.6);
+    var p = new THREE.Mesh(
+      new THREE.SphereGeometry(0.1 + Math.random() * 0.1, 6, 4),
+      new THREE.MeshBasicMaterial({ color: color, transparent: true })
+    );
+    var angle = Math.random() * Math.PI * 2;
+    var speed = 3 + Math.random() * 5;
+    p.position.set(0, 3, 0);
+    p.userData.vel = { x: Math.cos(angle) * speed, y: 4 + Math.random() * 6, z: Math.sin(angle) * speed };
+    p.userData.life = 0;
+    scene.add(p);
+    upgradeAnim.particles.push(p);
+  }
+}
+
+function updateParticles(dt) {
+  for (var i = upgradeAnim.particles.length - 1; i >= 0; i--) {
+    var p = upgradeAnim.particles[i];
+    p.userData.life += dt;
+    p.userData.vel.y -= 12 * dt;
+    p.position.x += p.userData.vel.x * dt;
+    p.position.y += p.userData.vel.y * dt;
+    p.position.z += p.userData.vel.z * dt;
+    p.material.opacity = Math.max(0, 1 - p.userData.life / 1.2);
+    if (p.userData.life > 1.2 || p.position.y < -1) {
+      scene.remove(p);
+      upgradeAnim.particles.splice(i, 1);
+    }
+  }
+}
+
+function cleanParticles() {
+  for (var i = 0; i < upgradeAnim.particles.length; i++) scene.remove(upgradeAnim.particles[i]);
+  upgradeAnim.particles = [];
+}
+
+function spawnFlashRing() {
+  var geo = new THREE.RingGeometry(0.5, 1.0, 32);
+  var mat = new THREE.MeshBasicMaterial({ color: 0xFFD700, transparent: true, opacity: 1, side: THREE.DoubleSide });
+  upgradeAnim.ring = new THREE.Mesh(geo, mat);
+  upgradeAnim.ring.rotation.x = -Math.PI / 2;
+  upgradeAnim.ring.position.y = 0.5;
+  scene.add(upgradeAnim.ring);
+}
+
+function cleanRing() {
+  if (upgradeAnim.ring) { scene.remove(upgradeAnim.ring); upgradeAnim.ring = null; }
 }
 
 var _toastTimer = 0;
@@ -1218,8 +1298,6 @@ function updateToast() {
 }
 
 function setupUI() {
-  updateShopUI();
-  updateMoneyDisplay();
   var houseInfo = document.getElementById('houseInfo');
   if (houseInfo) houseInfo.textContent = HOUSE_LEVELS[gameState.houseLevel-1].name;
 }
@@ -1254,13 +1332,20 @@ function updateSakura() {
 }
 
 // ===== 主循环 =====
+var _lastAnimTime = 0;
 function animate() {
   requestAnimationFrame(animate);
   var t = clock.getElapsedTime();
+  var dt = _lastAnimTime > 0 ? (t - _lastAnimTime) : 0.016;
+  if (dt > 0.1) dt = 0.016;
+  _lastAnimTime = t;
 
   // 时间流逝
   gameState.timeOfDay = (gameState.timeOfDay + 0.00004) % 1;
   updateDayNight();
+
+  // 升级动画
+  updateUpgradeAnim(dt);
 
   // 物体动画
   for (var i = 0; i < yardGroup.children.length; i++) {
