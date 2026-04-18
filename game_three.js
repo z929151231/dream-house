@@ -1430,7 +1430,7 @@ function onPointerMove(e) {
       if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
         touchMoved = true;
         camTheta = touchStartTheta - dx * 0.006;
-        camPhi = Math.max(0.15, Math.min(1.45, touchStartPhi + dy * 0.006));
+        camPhi = Math.max(0.15, Math.min(1.45, touchStartPhi - dy * 0.006));
         updateCamera();
       }
       mouse.x = ((cx - rect.left) / rect.width) * 2 - 1;
@@ -1469,7 +1469,7 @@ function onPointerMove(e) {
           camTarget.y += dy * panSpeed;
         } else {
           camTheta -= dx * 0.008;
-          camPhi = Math.max(0.15, Math.min(1.45, camPhi + dy * 0.008));
+          camPhi = Math.max(0.15, Math.min(1.45, camPhi - dy * 0.008));
         }
         updateCamera();
         lastPointer = { x: cx, y: cy, button: lastPointer.button };
