@@ -507,25 +507,27 @@ function buildWoodenHut() {
   right.position.x = 2*s;
   houseGroup.add(right);
   
-  // A字顶：两个斜面
+  // A字顶：两个斜面（屋脊沿前后方向）
   var roofMat = new THREE.MeshPhongMaterial({color: c.roof});
   var slopeLen = Math.sqrt(2.5*2.5 + 2.5*2.5) * s;
   
-  // 左坡
-  var leftSlope = new THREE.Mesh(new THREE.BoxGeometry(0.12, slopeLen, 5*s), roofMat);
+  // 左坡 - 宽=X方向斜坡长，高=薄板，深=前后方向
+  var leftSlope = new THREE.Mesh(new THREE.BoxGeometry(slopeLen, 0.12, 5.2*s), roofMat);
   leftSlope.rotation.z = Math.PI/4;
   leftSlope.position.set(-1.25*s, 4.25*s, 0);
   leftSlope.castShadow = true;
+  leftSlope.receiveShadow = true;
   houseGroup.add(leftSlope);
   
   // 右坡
-  var rightSlope = new THREE.Mesh(new THREE.BoxGeometry(0.12, slopeLen, 5*s), roofMat);
+  var rightSlope = new THREE.Mesh(new THREE.BoxGeometry(slopeLen, 0.12, 5.2*s), roofMat);
   rightSlope.rotation.z = -Math.PI/4;
   rightSlope.position.set(1.25*s, 4.25*s, 0);
   rightSlope.castShadow = true;
+  rightSlope.receiveShadow = true;
   houseGroup.add(rightSlope);
   
-  // 屋脊封条
+  // 屋脊封条（前后方向）
   var ridge = new THREE.Mesh(new THREE.BoxGeometry(0.2, 5.2*s, 0.25), new THREE.MeshPhongMaterial({color: shadeColor(c.roof, -20)}));
   ridge.rotation.x = Math.PI/2;
   ridge.position.set(0, 5.5*s, 0);
@@ -563,6 +565,36 @@ function buildWoodenHut() {
     sideWin.position.set(wx, 2*s, 0);
     sideWin.rotation.y = Math.PI/2;
     houseGroup.add(sideWin);
+  });
+  
+  // === 细节：烟囱 ===
+  var chimGeo = new THREE.BoxGeometry(0.4*s, 1.5*s, 0.4*s);
+  var chim = new THREE.Mesh(chimGeo, new THREE.MeshPhongMaterial({color: '#8b4513'}));
+  chim.position.set(-1.5*s, 4.5*s, 1.5*s);
+  chim.castShadow = true;
+  houseGroup.add(chim);
+  // 烟囱顶
+  var chimTop = new THREE.Mesh(new THREE.BoxGeometry(0.55*s, 0.15, 0.55*s), new THREE.MeshPhongMaterial({color: '#6b3510'}));
+  chimTop.position.set(-1.5*s, 5.3*s, 1.5*s);
+  houseGroup.add(chimTop);
+  
+  // === 细节：门廊灯（左） ===
+  var lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.03*s, 0.03*s, 0.4*s, 8), new THREE.MeshPhongMaterial({color: '#333'}));
+  lampPole.position.set(-0.7*s, 2.3*s, -2.0*s);
+  houseGroup.add(lampPole);
+  var lampShade = new THREE.Mesh(new THREE.SphereGeometry(0.08*s, 8, 6), new THREE.MeshPhongMaterial({color: '#ffff99', emissive: '#ffff00', emissiveIntensity: 0.5}));
+  lampShade.position.set(-0.7*s, 2.55*s, -2.0*s);
+  houseGroup.add(lampShade);
+  
+  // === 细节：门口花盆 ===
+  [-0.7*s, 0.7*s].forEach(function(px) {
+    var pot = new THREE.Mesh(new THREE.CylinderGeometry(0.15*s, 0.12*s, 0.25*s, 12), new THREE.MeshPhongMaterial({color: '#a0522d'}));
+    pot.position.set(px, 0.25*s, -2.5*s);
+    houseGroup.add(pot);
+    // 花
+    var flower = new THREE.Mesh(new THREE.SphereGeometry(0.12*s, 8, 6), new THREE.MeshPhongMaterial({color: '#ff69b4'}));
+    flower.position.set(px, 0.45*s, -2.5*s);
+    houseGroup.add(flower);
   });
 }
 
@@ -624,6 +656,31 @@ function buildBrickHouse() {
     frame.position.set(wp[0], wp[1], wp[2]);
     frame.rotation.y = wp[3];
     houseGroup.add(frame);
+    // 窗台
+    var sill = new THREE.Mesh(new THREE.BoxGeometry(1.1*s, 0.08, 0.15), new THREE.MeshPhongMaterial({color: c.base}));
+    sill.position.set(wp[0], wp[1] - 0.5*s, wp[2]);
+    if (wp[3] !== 0) sill.rotation.y = wp[3];
+    houseGroup.add(sill);
+  });
+  
+  // === 细节：门把手 ===
+  var knob2 = new THREE.Mesh(new THREE.SphereGeometry(0.08*s, 8, 6), new THREE.MeshPhongMaterial({color: '#c9a227'}));
+  knob2.position.set(0.35*s, 1.4*s, -3.0*s);
+  houseGroup.add(knob2);
+  
+  // === 细节：门牌号 ===
+  var sign = new THREE.Mesh(new THREE.BoxGeometry(0.5*s, 0.25*s, 0.05), new THREE.MeshPhongMaterial({color: '#fff5e6'}));
+  sign.position.set(0, 2.7*s, -3.0*s);
+  houseGroup.add(sign);
+  
+  // === 细节：窗台花盆（前窗） ===
+  [-1.5*s, 1.5*s].forEach(function(px) {
+    var pot2 = new THREE.Mesh(new THREE.CylinderGeometry(0.12*s, 0.1*s, 0.2*s, 10), new THREE.MeshPhongMaterial({color: '#b87333'}));
+    pot2.position.set(px, 1.7*s, -3.25*s);
+    houseGroup.add(pot2);
+    var flw = new THREE.Mesh(new THREE.SphereGeometry(0.1*s, 6, 5), new THREE.MeshPhongMaterial({color: px < 0 ? '#ff4500' : '#ff69b4'}));
+    flw.position.set(px, 1.9*s, -3.25*s);
+    houseGroup.add(flw);
   });
 }
 
@@ -701,6 +758,29 @@ function buildEuropeanVilla() {
     winArch.position.set(wp[0], wp[1] + 0.6*s, wp[2]);
     houseGroup.add(winArch);
   });
+  
+  // === 细节：阳台花盆 ===
+  [-0.8*s, 0.8*s].forEach(function(bx) {
+    var pot3 = new THREE.Mesh(new THREE.CylinderGeometry(0.15*s, 0.12*s, 0.3*s, 10), new THREE.MeshPhongMaterial({color: '#8b4513'}));
+    pot3.position.set(bx + 2.8*s, 3.0*s, 0);
+    houseGroup.add(pot3);
+    var flw3 = new THREE.Mesh(new THREE.SphereGeometry(0.15*s, 6, 5), new THREE.MeshPhongMaterial({color: bx < 0 ? '#9400d3' : '#ff1493'}));
+    flw3.position.set(bx + 2.8*s, 3.25*s, 0);
+    houseGroup.add(flw3);
+  });
+  
+  // === 细节：门前雕塑（左） ===
+  var pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.25*s, 0.3*s, 0.6*s, 12), new THREE.MeshPhongMaterial({color: '#f5f5dc'}));
+  pedestal.position.set(-2.5*s, 0.35*s, -2.8*s);
+  houseGroup.add(pedestal);
+  var statue = new THREE.Mesh(new THREE.SphereGeometry(0.2*s, 8, 6), new THREE.MeshPhongMaterial({color: '#c0c0c0'}));
+  statue.position.set(-2.5*s, 0.8*s, -2.8*s);
+  houseGroup.add(statue);
+  
+  // === 细节：塔楼窗户 ===
+  var tw = new THREE.Mesh(new THREE.BoxGeometry(0.3*s, 0.6*s, 0.05), new THREE.MeshPhongMaterial({color: c.win, transparent: true, opacity: 0.85}));
+  tw.position.set(-3*s, 3.5*s, -3.0*s);
+  houseGroup.add(tw);
 }
 
 // ===== 4. 现代豪宅：平顶+大玻璃 =====
@@ -760,6 +840,25 @@ function buildModernMansion() {
   var railGlass = new THREE.Mesh(new THREE.BoxGeometry(6.5*s, 0.8*s, 0.05), glassMat);
   railGlass.position.set(-1*s, 6.35*s, -2.2*s);
   houseGroup.add(railGlass);
+  
+  // === 细节：露天泳池（左侧） ===
+  var pool = new THREE.Mesh(new THREE.BoxGeometry(3*s, 0.4, 2.5*s), new THREE.MeshPhongMaterial({color: '#40e0d0', transparent: true, opacity: 0.8}));
+  pool.position.set(-5*s, 0.25, 0);
+  houseGroup.add(pool);
+  // 泳池边框
+  var poolFrame = new THREE.Mesh(new THREE.BoxGeometry(3.3*s, 0.5, 2.8*s), new THREE.MeshPhongMaterial({color: '#d3d3d3'}));
+  poolFrame.position.set(-5*s, 0.25, 0);
+  houseGroup.add(poolFrame);
+  
+  // === 细节：露台躺椅 ===
+  var lounge = new THREE.Mesh(new THREE.BoxGeometry(0.5*s, 0.15, 1.2*s), new THREE.MeshPhongMaterial({color: '#f5f5dc'}));
+  lounge.position.set(-2*s, 6.1*s, -1.5*s);
+  houseGroup.add(lounge);
+  
+  // === 细节：门把手 ===
+  var knob4 = new THREE.Mesh(new THREE.SphereGeometry(0.1*s, 8, 6), new THREE.MeshPhongMaterial({color: '#c0c0c0'}));
+  knob4.position.set(2.6*s, 1.4*s, -3.5*s);
+  houseGroup.add(knob4);
 }
 
 // ===== 5. 梦幻城堡：双塔+城墙 =====
@@ -851,6 +950,44 @@ function buildCastle() {
     var pt = new THREE.Mesh(new THREE.ConeGeometry(0.4*s, 0.6*s, 4), new THREE.MeshPhongMaterial({color: c.wallS}));
     pt.position.set(wp[0], wp[1] + 0.9*s, wp[2]);
     houseGroup.add(pt);
+  });
+  
+  // === 细节：护城河（环绕地基） ===
+  var moat = new THREE.Mesh(new THREE.RingGeometry(6.5*s, 7.5*s, 32), new THREE.MeshPhongMaterial({color: '#4169e1', transparent: true, opacity: 0.7}));
+  moat.rotation.x = -Math.PI/2;
+  moat.position.y = 0.05;
+  houseGroup.add(moat);
+  
+  // === 细节：吊桥 ===
+  var bridge = new THREE.Mesh(new THREE.BoxGeometry(2.5*s, 0.15, 4*s), new THREE.MeshPhongMaterial({color: '#8b4513'}));
+  bridge.position.set(0, 0.35, -5.5*s);
+  bridge.castShadow = true;
+  houseGroup.add(bridge);
+  // 吊桥链条
+  [-1.1*s, 1.1*s].forEach(function(bx) {
+    var chain = new THREE.Mesh(new THREE.CylinderGeometry(0.03*s, 0.03*s, 2*s, 6), new THREE.MeshPhongMaterial({color: '#555'}));
+    chain.position.set(bx, 1.2*s, -5.0*s);
+    houseGroup.add(chain);
+  });
+  
+  // === 细节：塔顶旗帜 ===
+  [-4*s, 4*s].forEach(function(tx) {
+    var fp2 = new THREE.Mesh(new THREE.CylinderGeometry(0.03*s, 0.03*s, 1.5*s, 6), new THREE.MeshPhongMaterial({color: '#8b4513'}));
+    fp2.position.set(tx, 10*s, 0);
+    houseGroup.add(fp2);
+    var fl2 = new THREE.Mesh(new THREE.BoxGeometry(0.6*s, 0.4*s, 0.02), new THREE.MeshPhongMaterial({color: tx < 0 ? '#0000ff' : '#ffff00'}));
+    fl2.position.set(tx + 0.3*s, 10.5*s, 0);
+    houseGroup.add(fl2);
+  });
+  
+  // === 细节：城墙火炬 ===
+  [[-4*s, 2.5*s, -3.1*s], [4*s, 2.5*s, -3.1*s]].forEach(function(tp) {
+    var torch = new THREE.Mesh(new THREE.CylinderGeometry(0.05*s, 0.08*s, 0.4*s, 8), new THREE.MeshPhongMaterial({color: '#8b4513'}));
+    torch.position.set(tp[0], tp[1], tp[2]);
+    houseGroup.add(torch);
+    var flame = new THREE.Mesh(new THREE.SphereGeometry(0.1*s, 8, 6), new THREE.MeshPhongMaterial({color: '#ff4500', emissive: '#ff2200', emissiveIntensity: 0.8}));
+    flame.position.set(tp[0], tp[1] + 0.3*s, tp[2]);
+    houseGroup.add(flame);
   });
 }
 
