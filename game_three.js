@@ -469,6 +469,7 @@ function buildHouse() {
   else if (lvl === 3) buildEuropeanVilla();
   else if (lvl === 4) buildModernMansion();
   else buildCastle();
+  houseGroup.rotation.y = Math.PI; // 门朝向正面（+Z方向）
   updateWindowGlow();
 }
 
@@ -1613,7 +1614,7 @@ function updateUpgradeAnim(dt) {
       upgradeAnim.phase = 'particles';
       upgradeAnim.timer = 0;
       houseGroup.visible = false;
-      houseGroup.rotation.y = 0;
+      houseGroup.rotation.y = Math.PI; // 保持门朝向正面
       spawnUpgradeParticles();
     }
   } else if (upgradeAnim.phase === 'particles') {
