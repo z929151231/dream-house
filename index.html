@@ -381,14 +381,15 @@
       // Step 1: 上传所有图片
       setStatus('正在上传图片...', 10);
       const uploadResult = await uploadImages();
+      const imageIds = uploadResult.images.map(img => img.id);
 
       // Step 2: 分析场景
       setStatus('AI 正在分析图片场景...', 30);
-      const analysisResult = await analyzeScenes(uploadResult.image_ids);
+      const analysisResult = await analyzeScenes(imageIds);
 
       // Step 3: 生成视频
       setStatus('FFmpeg 正在生成视频...', 60);
-      const videoResult = await generateVideo(uploadResult.image_ids, analysisResult);
+      const videoResult = await generateVideo(imageIds, analysisResult);
 
       // Step 4: 显示结果
       setStatus('完成！', 100);
