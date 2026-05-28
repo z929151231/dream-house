@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>图片转视频 - H5</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+    }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    
+    .header { text-align: center; margin-bottom: 30px; }
+    .header h1 { font-size: 28px; margin-bottom: 8px; }
+    .header p { color: #8892b0; font-size: 14px; }
+    
+    .image-section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 2px dashed rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    .image-section.has-image { border-color: rgba(102, 187, 106, 0.3); }
+    
+    .preview-area { margin-bottom: 15px; }
+    .preview-area img {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 12px;
+      object-fit: contain;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin: 5px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+      color: #fff;
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .btn-danger {
+      background: rgba(239, 83, 80, 0.2);
+      color: #ef8350;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    
+    .status-area {
+      text-align: center;
+      padding: 30px 20px;
+    }
+    .status-area .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top-color: #66bb6a;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .progress-bar {
+      width: 200px; height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      margin: 15px auto;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #66bb6a, #43a047);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    
+    .error-box {
+      background: rgba(239, 83, 80, 0.1);
+      border: 1px solid rgba(239, 83, 80, 0.3);
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    .error-box pre {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #ff8a80;
+    }
+    
+    .log-panel {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .log-panel.show { display: flex; }
+    .log-content-box {
+      background: #1e1e1e;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .log-content-box pre {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #00e676;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-bottom: 15px;
+    }
+    .log-content-box .btn { display: inline-block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 头部 -->
+    <div class="header">
+      <h1>🎬 图片转视频</h1>
+      <p>H5 版本 · 绕过小程序限制</p>
+    </div>
+
+    <!-- 图片区 -->
+    <div class="image-section" id="imageSection">
+      <div class="preview-area" id="previewArea" style="display: none;">
+        <img id="imagePreview" src="" alt="预览">
+        <br>
+        <button class="btn btn-danger" id="deleteBtn">🗑️ 删除图片</button>
+      </div>
+      <div id="uploadHint">
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📷 选择图片</button>
+        <p style="margin-top: 10px; color: #8892b0; font-size: 14px;">支持 JPG/PNG，最大 5MB</p>
+      </div>
+    </div>
+
+    <!-- 生成按钮 -->
+    <div style="text-align: center;">
+      <button class="btn btn-primary btn-generate" id="generateBtn" disabled>✨ 一键生成</button>
+    </div>
+
+    <!-- 生成中状态 -->
+    <div class="status-area" id="statusArea" style="display: none;">
+      <div class="spinner"></div>
+      <p id="statusText">正在分析图片...</p>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+      <p id="progressText">0%</p>
+      <p id="statusDetail" style="color: #8892b0; font-size: 13px; margin-top: 10px;"></p>
+    </div>
+
+    <!-- 结果区 -->
+    <div id="resultArea" style="display: none; text-align: center;">
+      <h2 style="margin-bottom: 15px;">✅ 生成成功！</h2>
+      <div id="resultContent" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px;"></div>
+      <button class="btn btn-secondary" id="regenerateBtn">🔄 重新生成</button>
+    </div>
+
+    <!-- 错误提示 -->
+    <div class="error-box" id="errorBox" style="display: none;">
+      <p id="errorText"></p>
+    </div>
+  </div>
+
+  <!-- 日志面板 -->
+  <div class="log-panel" id="logPanel">
+    <div class="log-content-box">
+      <h3 style="margin-bottom: 10px;">📋 调试日志</h3>
+      <pre id="logContent"></pre>
+      <button class="btn btn-secondary" onclick="copyLog()">📋 复制日志</button>
+      <button class="btn btn-secondary" onclick="hideLogPanel()">关闭</button>
+    </div>
+  </div>
+
+  <script>
+    // ============ 配置 ============
+    // H5 直接调用智谱 API，不走 Workers 中转（绕过 Workers 可达性问题）
+    const ZHIPU_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    const ZHIPU_API_KEY = '4c5103ef14254a5da223e5de0bd27879.Pt0orCbAoQGgXwSU';
+    const MAX_RETRIES = 2;
+
+    // ============ 状态 ============
+    let selectedFile = null;
+    let selectedBase64 = null;
+
+    // ============ DOM 元素 ============
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewArea = document.getElementById('previewArea');
+    const uploadHint = document.getElementById('uploadHint');
+    const imageSection = document.getElementById('imageSection');
+    const generateBtn = document.getElementById('generateBtn');
+    const statusArea = document.getElementById('statusArea');
+    const resultArea = document.getElementById('resultArea');
+    const errorBox = document.getElementById('errorBox');
+    const logPanel = document.getElementById('logPanel');
+
+    // ============ 事件监听 ============
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // 检查大小
+      if (file.size > 5 * 1024 * 1024) {
+        showError('图片过大，请选择小于 5MB 的图片');
+        return;
+      }
+
+      // 检查格式
+      if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+        showError('不支持的图片格式');
+        return;
+      }
+
+      selectedFile = file;
+      selectedBase64 = await fileToBase64(file);
+      
+      imagePreview.src = URL.createObjectURL(file);
+      previewArea.style.display = 'block';
+      uploadHint.style.display = 'none';
+      imageSection.classList.add('has-image');
+      generateBtn.disabled = false;
+      hideError();
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', () => {
+      selectedFile = null;
+      selectedBase64 = null;
+      fileInput.value = '';
+      previewArea.style.display = 'none';
+      uploadHint.style.display = 'block';
+      imageSection.classList.remove('has-image');
+      generateBtn.disabled = true;
+      resultArea.style.display = 'none';
+      errorBox.style.display = 'none';
+    });
+
+    generateBtn.addEventListener('click', onGenerate);
+    document.getElementById('regenerateBtn').addEventListener('click', () => {
+      resultArea.style.display = 'none';
+      errorBox.style.display = 'none';
+      statusArea.style.display = 'none';
+      generateBtn.disabled = false;
+    });
+
+    // ============ 核心功能 ============
+    async function onGenerate() {
+      if (!selectedBase64) return;
+
+      generateBtn.disabled = true;
+      showStatus('analyzing', 40, '正在调用 AI 分析图片...');
+      hideError();
+
+      try {
+        const result = await analyzeImageWithAI(selectedBase64);
+        
+        showStatus('success', 100, '分析完成！', result.prompt);
+        
+        // 显示结果
+        setTimeout(() => {
+          showResult(result);
+        }, 500);
+        
+      } catch (err) {
+        console.error(err);
+        showLogPanelWithContent(formatErrorLog(err));
+        showError('分析失败，请查看日志了解详情');
+      } finally {
+        generateBtn.disabled = false;
+      }
+    }
+
+    async function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function analyzeImageWithAI(imageBase64) {
+      const systemPrompt = `You are a professional visual content analysis AI. Please analyze this image in detail:
+
+1. **Main Subject**: What's in the image? People/animals/scenery/items?
+2. **Visual Style**: Photo/painting/illustration/photography? Realistic/dreamy/vintage/modern?
+3. **Color Atmosphere**: Warm tones/cool tones/high contrast/soft?
+4. **Emotional Tone**: Joyful/serene/mysterious/warm/energetic?
+5. **Dynamic Elements**: If this image became a video, what dynamic changes might occur?
+
+Output a professional English prompt (50-100 words) describing the image content:
+- Use professional AI image/video generation prompt format
+- Include detailed visual element descriptions
+- Reflect the style and mood of the image
+- Hint at possible dynamic movements
+- Output ONLY the prompt, no explanations`;
+
+      let attempt = 0;
+      
+      return new Promise((resolve, reject) => {
+        function tryRequest() {
+          attempt++;
+          if (attempt > 1) {
+            showStatus('retrying', 40, `重试中... (第 ${attempt} 次)`);
+          }
+
+          // ⚠️ H5 直接 POST 到智谱 API
+          fetch(ZHIPU_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${ZHIPU_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: 'glm-4.6v-flashx',
+              messages: [{
+                role: 'user',
+                content: [
+                  { type: 'image_url', image_url: { url: imageBase64 } },
+                  { type: 'text', text: systemPrompt },
+                ],
+              }],
+              temperature: 0.3,
+            }),
+          })
+          .then(res => {
+            if (!res.ok) {
+              return res.json().then(err => { throw new Error(`HTTP ${res.status}: ${err.message || res.statusText}`) });
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (data.error) {
+              throw new Error(`AI 错误: ${data.error.message || data.error}`);
+            }
+            const content = data.choices?.[0]?.message?.content?.trim() || '';
+            if (content) {
+              resolve({
+                prompt: content,
+                model: data.model || 'glm-4v',
+              });
+            } else {
+              throw new Error('响应格式异常');
+            }
+          })
+          .catch(err => {
+            console.error(`[Attempt ${attempt}]`, err);
+            
+            if (attempt <= MAX_RETRIES) {
+              setTimeout(tryRequest, 3000);
+            } else {
+              reject(err);
+            }
+          });
+        }
+
+        tryRequest();
+      });
+    }
+
+    // ============ UI 函数 ============
+    function showStatus(step, progress, text, detail = '') {
+      statusArea.style.display = 'block';
+      document.getElementById('statusText').textContent = text;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressText').textContent = progress + '%';
+      document.getElementById('statusDetail').textContent = detail;
+    }
+
+    function showResult(result) {
+      statusArea.style.display = 'none';
+      resultArea.style.display = 'block';
+      document.getElementById('resultContent').innerHTML = `
+        <p style="color: #8892b0; font-size: 12px; margin-bottom: 10px;">AI 提示词：</p>
+        <p style="font-family: 'Georgia', serif; font-style: italic; line-height: 1.8; font-size: 14px;">"${result.prompt}"</p>
+        <p style="color: #8892b0; font-size: 12px; margin-top: 10px;">模型: ${result.model}</p>
+      `;
+    }
+
+    function showError(msg) {
+      errorBox.style.display = 'block';
+      document.getElementById('errorText').textContent = msg;
+    }
+
+    function hideError() {
+      errorBox.style.display = 'none';
+    }
+
+    function showLogPanelWithContent(content) {
+      document.getElementById('logContent').textContent = content;
+      logPanel.classList.add('show');
+    }
+
+    function hideLogPanel() {
+      logPanel.classList.remove('show');
+    }
+
+    function copyLog() {
+      const content = document.getElementById('logContent').textContent;
+      navigator.clipboard.writeText(content).then(() => {
+        alert('已复制到剪贴板');
+      }).catch(() => {
+        alert('复制失败，请手动复制');
+      });
+    }
+
+    function formatErrorLog(err) {
+      return [
+        '═══════════════════════════════════',
+        '【错误报告】' + new Date().toLocaleString('zh-CN'),
+        '═══════════════════════════════════',
+        '',
+        `错误类型: ${err.constructor.name}`,
+        `错误消息: ${err.message || err.statusText || '未知错误'}`,
+        '',
+        `API URL: ${ZHIPU_API_URL}`,
+        `当前页面: ${window.location.href}`,
+        '',
+        `完整信息:`,
+        err.stack || err.toString(),
+        '═══════════════════════════════════',
+      ].join('\n');
+    }
+  </script>
+</body>
+</html>

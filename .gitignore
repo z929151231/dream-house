@@ -1,0 +1,58 @@
+# Windows
+[Dd]esktop.ini
+Thumbs.db
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# Node.js
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tool data (never commit)
+.workbuddy/
+.workbuddy.bak/
+
+# Generated outputs (keep structure, ignore contents)
+output_videos/*.mp4
+output_videos/*.json
+output_videos/*.txt
+screenshots/
+upload_temp/
+demo_videos/
+input_images/*.jpg
+input_images/*.png
+
+# Logs
+*.log
+
+# Large image files
+*.png
+*.jpg
+*.jpeg
+
+# Sensitive
+secrets.*
